@@ -1,3 +1,0 @@
-#!/bin/sh  
-echo "Placeholder test suite - all tests passed"  
-exit 0  
