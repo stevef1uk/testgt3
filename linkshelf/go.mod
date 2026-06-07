@@ -1,3 +1,10 @@
-module linkshelf
+module github.com/testgt3/mayor/rig/linkshelf
 
-go 1.25.8
+go 1.22
+
+require (
+	github.com/google/uuid v1.6.0
+	go.uber.org/zap v1.28.0
+)
+
+require go.uber.org/multierr v1.10.0 // indirect
