@@ -1,0 +1,6 @@
+{
+  "profile": "go-stdlib-servemux",
+  "overrides": {
+    "traversal_probe_path": "/static/../go.mod"
+  }
+}
