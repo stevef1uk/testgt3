@@ -18,7 +18,7 @@ gt-agent-state.json
 codeindex.json
 **/codeindex.json
 *.db
-server
+/server
 block:
 node_modules/
 env/
