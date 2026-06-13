@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "generated": "2026-06-12",
+    "repo": "store/",
+    "total_symbols": 1
+  },
+  "symbols": {
+    "InitSchema": [
+      {
+        "line": 10,
+        "kind": "function",
+        "exported": true,
+        "file": "schema.go"
+      }
+    ]
+  },
+  "file_symbols": {
+    "schema.go": [
+      {
+        "name": "InitSchema",
+        "line": 10,
+        "kind": "function",
+        "exported": true
+      }
+    ]
+  }
+}

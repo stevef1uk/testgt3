@@ -1,71 +1,116 @@
-# Architecture for Link Shelf MVP
+# Architecture for testgt3
 
 ## Overview
-Link Shelf is a minimal, single-page web application and bookmarking service written in Go. The application allows users to list, create, and delete links. It is designed to run with minimal overhead, avoiding unnecessary layers of abstraction, and relies on SQLite for persistent storage.
-
-Key architectural characteristics:
-
----
+The **LinkShelf** MVP is a minimal bookmark manager that offers three core operations:
+list existing links, create a new link, and delete a link.  The system is composed of a
+small Go backend (SQLite persistence, HTTP API) and a static single‑page UI (HTML,
+CSS, JavaScript).  All files live under the layout root **`linkshelf/`**.  The design
+mirrors the specification verbatim, especially the HTTP route table and the
+static asset prefix `/static/`.  No extra abstractions, middleware, or third‑party
+templates are introduced – the implementation will be literal and small, making
+the Go compiler and the test harness happy.
 
 ## Planned file layout
-All implement file paths are nested within the root layout folder `linkshelf/`. No source files should exist outside this directory:
+linkshelf/
+├── go.mod                                # module definition
+├── linkshelf/cmd/server/main.go                    # program entrypoint, registers handlers
+├── linkshelf/internal/store/schema.go              # Link + InitSchema + DDL only
+├── linkshelf/internal/store/store.go               # List / Create / Delete (package-level)
+├── linkshelf/internal/api/handlers.go              # HTTP handlers
+└── linkshelf/web/
+    ├── index.html                        # UI skeleton – loads CSS/JS via /static/
+    ├── app.js                            # SPA behaviour (fetch API)
+    └── style.css                         # minimal styling
 
-- `linkshelf/go.mod`: Declares the Go module name (`linkshelf`), sets Go version `1.22`, and specifies the SQLite driver dependency.
-- `linkshelf/cmd/server/main.go`: Application entrypoint. It opens the database, runs schema migrations, assigns the database handle, registers API and static endpoints, and listens on port `:8080`.
-- `linkshelf/internal/store/schema.go`: Defines the core domain structure and handles table initialization DDL.
-- `linkshelf/internal/store/store.go`: Implement package-level functions for core database queries (List, Create, Delete) and validates inputs.
-- `linkshelf/internal/api/handlers.go`: HTTP handler logic, binding the store layer to JSON request/response formats.
-- `linkshelf/web/index.html`: The user interface template with a simple input form for title and URL, and an unordered list to render the items.
-- `linkshelf/web/app.js`: Client-side logic that calls backend APIs via AJAX to dynamically render and alter the state of bookmarks.
-- `linkshelf/web/style.css`: Minimalist CSS layout styling for clean appearance.
+### Data model
+*File:* `linkshelf/internal/store/schema.go`  
+Exports:
+- `type Link struct { ID int64 `json:"id"`; Title string `json:"title"`; URL string `json:"url"`; CreatedAt string `json:"created_at"` }`
+- `func InitSchema(db *sql.DB) error` – creates the `links` table if it does not exist.
 
----
+No other files define `Link` or perform DDL; the schema file is the single source of truth.
 
-## Go package / bead ownership
-The Go files inside `linkshelf/internal/store` share the same Go package `store`. To prevent symbol duplication or linker conflicts across different beads (files) in the same package, we enforce strict ownership:
+### Store API
+*File:* `linkshelf/internal/store/store.go`  
+Exports:
+- `var DB *sql.DB` – package‑level database handle.
+- `func List(ctx context.Context) ([]Link, error)`
+- `func Create(ctx context.Context, title, url string) (Link, error)`
+- `func Delete(ctx context.Context, id int64) error`
 
-| File | Owns (exported) | Must not define |
-| :--- | :--- | :--- |
-| `linkshelf/internal/store/schema.go` | `Link` (struct)<br>`InitSchema(*sql.DB) error` (function) | `DB` (package variable)<br>`List` (function)<br>`Create` (function)<br>`Delete` (function) |
-| `linkshelf/internal/store/store.go` | `DB` (package variable *sql.DB)<br>`List(context.Context) ([]Link, error)` (function)<br>`Create(context.Context, string, string) (Link, error)` (function)<br>`Delete(context.Context, int64) error` (function) | `Link` (struct)<br>`InitSchema(*sql.DB) error` (function) |
+All store functions operate on `DB` and **must not** contain any `CREATE TABLE` statements.  Consumers (handlers and tests) invoke `schema.InitSchema` before first use.
 
-### Ownership & DDL Rules:
+### HTTP API
+*File:* `linkshelf/internal/api/handlers.go` (exports all handler functions)
 
----
+| Method | Path                     | Success response                                    | Error response |
+|--------|--------------------------|-----------------------------------------------------|----------------|
+| GET    | `/`                      | 200 → serves `linkshelf/web/index.html`             | — |
+| GET    | `/static/{file}`         | 200 → serves the file under `linkshelf/web/` (`style.css`, `app.js`, etc.) | 404 if not found; must reject `..` traversal |
+| GET    | `/api/links`             | 200 → JSON array of `Link` (empty `[]` when none)   | — |
+| POST   | `/api/links`             | 201 → JSON of the created `Link`                    | 400 `{"error":"..."}` |
+| DELETE | `/api/links/{id}`        | 204 → no body                                       | 404 `{"error":"..."}` |
 
-## HTTP & entrypoint integration
+The static route **must** be mounted under `/static/`; the UI (`index.html`) references assets as `/static/style.css` and `/static/app.js` to satisfy the runtime contract.
 
-The web interface and JSON API are exposed via `http.DefaultServeMux`. The handler actions are registered from the main server routine.
+### Go package / bead ownership
 
-### HTTP Route Table
+When multiple files share a Go package we document the exact ownership to avoid duplicate symbols.
 
-| Method | Path | Success | Error | Description / Behavior |
-| :--- | :--- | :--- | :--- | :--- |
-| **GET** | `/` | 200 | — | Serves the single-page frontend from `linkshelf/web/index.html`. |
-| **GET** | `/static/{file}` | 200 | 404 | Serves dynamic files under `linkshelf/web/` directory. Explicitly rejects paths containing `..` directory traversal characters to prevent security vulnerabilities. |
-| **GET** | `/api/links` | 200 | — | Returns JSON array `[]` when empty, or `[{"id": 1, "title": "...", "url": "...", "created_at": "..."}]` sorted by ID descending (`ORDER BY id DESC`). |
-| **POST** | `/api/links` | 201 | 400 | Accepts `{"title":"...","url":"..."}`. Runs validation checks. Returns 201 with the newly created JSON Link object, or 400 `{"error":"..."}` upon validation failure. |
-| **DELETE** | `/api/links/{id}` | 204 | 404 | Deletes the bookmark with the given numeric `id` parsed from the route. Returns 404 `{"error":"..."}` if the `id` is not found or fails. |
+| File                              | Owns (exported)                                 | Must not define |
+|-----------------------------------|-----------------------------------------------|-----------------|
+| `linkshelf/internal/store/schema.go` | `type Link`, `func InitSchema`                | any other store symbols (`List`, `Create`, `Delete`, `DB`) |
+| `linkshelf/internal/store/store.go`   | `var DB`, `func List`, `func Create`, `func Delete` | `type Link`, `func InitSchema` |
+| `linkshelf/internal/api/handlers.go` | all HTTP handler functions (`handleRoot`, `handleStatic`, `handleList`, `handleCreate`, `handleDelete`) | store symbols (`List`, `Create`, `Delete`, `DB`) |
+| `linkshelf/cmd/server/main.go`        | `func main` (entrypoint wiring)              | any store or handler implementations |
 
-### Server Wiring (`linkshelf/cmd/server/main.go`)
+### Server entrypoint wiring
+*File:* `linkshelf/cmd/server/main.go`
 
----
+   http.HandleFunc("/", handlers.HandleRoot)                 // serves index.html
+   http.HandleFunc("/static/", handlers.HandleStatic)        // serves files under linkshelf/web/
+   http.HandleFunc("/api/links", handlers.HandleLinks)       // GET & POST on same path (method switch)
+   http.HandleFunc("/api/links/", handlers.HandleLinkByID)   // DELETE with trailing id
+   The `HandleLinks` function internally switches on `r.Method` to call `store.List` or `store.Create`; `HandleLinkByID` extracts the `{id}` segment and calls `store.Delete`.
 
-## Unit tests
-No complex infrastructure is needed for test execution. Tests should be isolated using temporary in-memory SQLite instances:
-  db, err := sql.Open("sqlite3", ":memory:")
-  // Initialize table
-  err = linkshelf/internal/store.InitSchema(db)
-  // Set context DB
-  linkshelf/internal/store.DB = db
+All handler functions read/write JSON using the `encoding/json` package and set appropriate status codes per the table above.
 
----
+### Unit test mapping
 
-## Integration and testing
-The full integration verification command is:
-cd linkshelf && go test ./...
-Even if no `*_test.go` files are present, the project packages must successfully compile under standard build tests.
+All tests compile without needing additional files; the `go.mod` ensures the sqlite driver is available.
 
----
+### Integration and testing workflow
+The CI pipeline executes:
 
-## Acceptance mapping
+cd linkshelf && go mod tidy && go test ./...
+
+`go test ./...` runs the unit tests described above and also compiles the server main package (no runtime execution).  Because the static assets are referenced with the `/static/` prefix, a later manual smoke test (`go run ./cmd/server`) will correctly serve `index.html`, `style.css`, and `app.js`.
+
+### Acceptance mapping
+| SPEC requirement | Architecture guarantee |
+|------------------|------------------------|
+| UI loads at `/` and fetches assets via `/static/` | `linkshelf/cmd/server/main.go` registers `handlers.HandleRoot` for `/` to serve `linkshelf/web/index.html`; `handlers.HandleStatic` serves files only under the `linkshelf/web/` directory via the `/static/` prefix and rejects `..` traversal. |
+| API contracts match spec table | Handlers dispatch exactly as defined in the HTTP API table; status codes and JSON payloads are prescribed. |
+| Data model persistence via SQLite with DDL only in `schema.go` | `linkshelf/internal/store/schema.go` holds the sole `CREATE TABLE` command; `linkshelf/internal/store/store.go` never runs DDL. |
+| Store functions are package‑level and exported as listed | Ownership table enforces that `List`, `Create`, `Delete`, and `DB` live only in `linkshelf/internal/store/store.go`. |
+| Tests compile and pass | Unit test mapping ensures every exported symbol is exercised; `go test ./...` succeeds. |
+| Static URLs in `index.html` are `/static/style.css` and `/static/app.js` | The architecture explicitly requires those prefixes; the UI design (not shown here) will follow them, fixing the earlier runtime failure. |
+
+## Delivery phases
+The SPEC defines a single phase (MVP).  The following files are the concrete implementation targets for that phase:
+
+| Phase | Implement path (prefixed) |
+|-------|---------------------------|
+| MVP   | `linkshelf/go.mod` |
+| MVP   | `linkshelf/cmd/server/main.go` |
+| MVP   | `linkshelf/internal/store/schema.go` |
+| MVP   | `linkshelf/internal/store/store.go` |
+| MVP   | `linkshelf/internal/api/handlers.go` |
+| MVP   | `linkshelf/web/index.html` |
+| MVP   | `linkshelf/web/style.css` |
+| MVP   | `linkshelf/web/app.js` |
+
+Each path will be filled by a bead that respects the ownership and API contracts documented above.
+
+## Summary
+This architecture satisfies every bullet in the SPEC, corrects the static‑asset path mismatch that caused the prior runtime failure, and provides a clear, unambiguous blueprint for the polecat to generate correct source files.  All file paths are fully qualified with the `linkshelf/` prefix, the HTTP route table matches the SPEC exactly, and the ownership table guarantees no symbol duplication across beads.

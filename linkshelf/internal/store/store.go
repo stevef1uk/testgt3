@@ -3,16 +3,23 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
-	"time"
 )
 
+// DB is the package‑level database handle. It must be set by the caller
+// (e.g. main.go after opening the SQLite file).
 var DB *sql.DB
 
+// List returns all links ordered by newest first.
+// It never returns a nil slice; an empty slice is returned when no rows exist.
 func List(ctx context.Context) ([]Link, error) {
-	const q = `SELECT id, title, url, created_at FROM links ORDER BY id DESC`
-	rows, err := DB.QueryContext(ctx, q)
+	if DB == nil {
+		return nil, errors.New("store DB not initialized")
+	}
+	const query = `SELECT id, title, url, created_at FROM links ORDER BY id DESC`
+	rows, err := DB.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("query links: %w", err)
 	}
@@ -27,53 +34,70 @@ func List(ctx context.Context) ([]Link, error) {
 		links = append(links, l)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("rows error: %w", err)
+		return nil, fmt.Errorf("iterate links: %w", err)
 	}
 	return links, nil
 }
 
+// Create validates the input and inserts a new link.
+// On success it returns the created Link with its ID and CreatedAt populated.
 func Create(ctx context.Context, title, url string) (Link, error) {
-	// validate title
-	trimmed := strings.TrimSpace(title)
-	if trimmed == "" {
-		return Link{}, fmt.Errorf("title required")
+	if DB == nil {
+		return Link{}, errors.New("store DB not initialized")
 	}
-	if len([]rune(trimmed)) > 200 {
-		return Link{}, fmt.Errorf("title exceeds 200 characters")
+	// Validate title.
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return Link{}, errors.New("title must be non‑empty")
 	}
-	// validate url
+	if len([]rune(title)) > 200 {
+		return Link{}, errors.New("title exceeds 200 characters")
+	}
+	// Validate URL.
+	url = strings.TrimSpace(url)
+	if url == "" {
+		return Link{}, errors.New("url must be non‑empty")
+	}
 	if !(strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")) {
-		return Link{}, fmt.Errorf("url must start with http:// or https://")
+		return Link{}, errors.New("url must start with http:// or https://")
 	}
-	now := time.Now().UTC().Format(time.RFC3339)
-	const q = `INSERT INTO links (title, url, created_at) VALUES (?, ?, ?)`
-	res, err := DB.ExecContext(ctx, q, trimmed, url, now)
+
+	const insert = `INSERT INTO links (title, url) VALUES (?, ?)`
+	res, err := DB.ExecContext(ctx, insert, title, url)
 	if err != nil {
 		return Link{}, fmt.Errorf("insert link: %w", err)
 	}
 	id, err := res.LastInsertId()
 	if err != nil {
-		return Link{}, fmt.Errorf("get last insert id: %w", err)
+		return Link{}, fmt.Errorf("retrieve last insert id: %w", err)
 	}
-	return Link{
-		ID:        id,
-		Title:     trimmed,
-		URL:       url,
-		CreatedAt: now,
-	}, nil
+
+	// Retrieve the full row (including CreatedAt).
+	const sel = `SELECT id, title, url, created_at FROM links WHERE id = ?`
+	row := DB.QueryRowContext(ctx, sel, id)
+	var l Link
+	if err := row.Scan(&l.ID, &l.Title, &l.URL, &l.CreatedAt); err != nil {
+		return Link{}, fmt.Errorf("fetch created link: %w", err)
+	}
+	return l, nil
 }
 
+// Delete removes the link with the given id.
+// Returns an error if the id does not exist.
 func Delete(ctx context.Context, id int64) error {
-	const q = `DELETE FROM links WHERE id = ?`
-	res, err := DB.ExecContext(ctx, q, id)
+	if DB == nil {
+		return errors.New("store DB not initialized")
+	}
+	const del = `DELETE FROM links WHERE id = ?`
+	res, err := DB.ExecContext(ctx, del, id)
 	if err != nil {
 		return fmt.Errorf("delete link: %w", err)
 	}
-	rowsAffected, err := res.RowsAffected()
+	aff, err := res.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("get rows affected: %w", err)
+		return fmt.Errorf("rows affected: %w", err)
 	}
-	if rowsAffected == 0 {
+	if aff == 0 {
 		return fmt.Errorf("link with id %d not found", id)
 	}
 	return nil

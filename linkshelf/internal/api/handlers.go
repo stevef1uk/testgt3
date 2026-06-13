@@ -2,125 +2,145 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"linkshelf/internal/store"
-
-	"github.com/go-chi/chi/v5"
+	"github.com/example/linkshelf/internal/store"
 )
 
-// webRoot points to the directory containing static web assets.
-var webRoot = "web"
+const webRoot = "web"
 
-// writeJSONError writes an error message as a JSON object with the given status code.
-func writeJSONError(w http.ResponseWriter, msg string, code int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
-	fmt.Fprintf(w, `{"error":"%s"}`, msg)
-}
-
-// serveIndex serves the main index.html file.
-func serveIndex(w http.ResponseWriter, r *http.Request) {
+// handleRoot serves the UI index page.
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
 	http.ServeFile(w, r, filepath.Join(webRoot, "index.html"))
 }
 
-// serveStatic serves static files from the web directory.
-func serveStatic(w http.ResponseWriter, r *http.Request) {
+// handleStatic serves static files under the web directory.
+// It rejects any path containing ".." to prevent directory traversal.
+func handleStatic(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
-	// Prevent path traversal attacks.
-	if strings.Contains(uri, "..") {
+	if !strings.HasPrefix(uri, "/static/") {
 		http.NotFound(w, r)
 		return
 	}
-	relPath := strings.TrimPrefix(uri, "/static/")
-	if relPath == "" {
+	rel := strings.TrimPrefix(uri, "/static/")
+	if strings.Contains(rel, "..") {
 		http.NotFound(w, r)
 		return
 	}
-	absPath := filepath.Join(webRoot, relPath)
-	http.ServeFile(w, r, absPath)
+	absPath := filepath.Join(webRoot, rel)
+
+	// Serve the file manually to avoid unexpected redirects.
+	f, err := os.Open(absPath)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	defer f.Close()
+
+	// Detect content type.
+	buf := make([]byte, 512)
+	n, _ := f.Read(buf)
+	contentType := http.DetectContentType(buf[:n])
+	w.Header().Set("Content-Type", contentType)
+	// Reset file offset after reading header bytes.
+	if _, err := f.Seek(0, 0); err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	_, _ = io.Copy(w, f)
 }
 
-// handleGetLinks retrieves all links from the store.
-func handleGetLinks(w http.ResponseWriter, r *http.Request) {
+// handleList returns the list of links as JSON.
+func handleList(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
 	links, err := store.List(r.Context())
 	if err != nil {
-		writeJSONError(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	data, err := json.Marshal(links)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(links)
+	w.Write(data)
 }
 
-// handlePostLink creates a new link in the store.
-func handlePostLink(w http.ResponseWriter, r *http.Request) {
+// handleCreate creates a new link from JSON payload.
+func handleCreate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "cannot read body", http.StatusBadRequest)
+		return
+	}
 	var payload struct {
 		Title string `json:"title"`
 		URL   string `json:"url"`
 	}
-	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
-		writeJSONError(w, err.Error(), http.StatusBadRequest)
+	if err := json.Unmarshal(body, &payload); err != nil {
+		http.Error(w, "invalid json", http.StatusBadRequest)
 		return
 	}
-	created, err := store.Create(r.Context(), payload.Title, payload.URL)
+	if payload.Title == "" {
+		payload.Title = payload.URL
+	}
+	link, err := store.Create(r.Context(), payload.Title, payload.URL)
 	if err != nil {
-		// Validation errors are client errors; other errors are server errors.
-		if strings.Contains(err.Error(), "required") || strings.Contains(err.Error(), "must") {
-			writeJSONError(w, err.Error(), http.StatusBadRequest)
-		} else {
-			writeJSONError(w, err.Error(), http.StatusInternalServerError)
-		}
+		resp := map[string]string{"error": err.Error()}
+		b, _ := json.Marshal(resp)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(b)
 		return
 	}
+	b, _ := json.Marshal(link)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(created)
+	w.Write(b)
 }
 
-// handleDeleteLink removes a link by ID.
-func handleDeleteLink(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		writeJSONError(w, "invalid id", http.StatusBadRequest)
+// handleDelete deletes a link by ID from the URL path.
+func handleDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	if err := store.Delete(r.Context(), int64(id)); err != nil {
-		// Not‑found or other DB error.
-		writeJSONError(w, err.Error(), http.StatusNotFound)
+	// Expected path: /api/links/{id}
+	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/links/"), "/")
+	if len(parts) == 0 || parts[0] == "" {
+		http.NotFound(w, r)
+		return
+	}
+	id, err := strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	if err := store.Delete(r.Context(), id); err != nil {
+		resp := map[string]string{"error": err.Error()}
+		b, _ := json.Marshal(resp)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(b)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
-}
-
-// RegisterHandlers registers all HTTP handlers on the default ServeMux.
-func RegisterHandlers() {
-	// Root and static assets.
-	http.HandleFunc("/", serveIndex)
-	http.HandleFunc("/static/", serveStatic)
-
-	// API endpoints.
-	http.HandleFunc("/api/links", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			handleGetLinks(w, r)
-		case http.MethodPost:
-			handlePostLink(w, r)
-		default:
-			writeJSONError(w, "method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	// DELETE endpoint expects an ID as the final path component.
-	http.HandleFunc("/api/links/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodDelete {
-			writeJSONError(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		handleDeleteLink(w, r)
-	})
 }
