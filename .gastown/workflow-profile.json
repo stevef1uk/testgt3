@@ -63,7 +63,7 @@
         "qa_verify_command": "cd linkshelf && go test ./cmd/server/..."
       }
     ],
-    "active_phase_id": "server-main",
+    "active_phase_id": "web-static",
     "spec_summary": "MVP spec for a tiny bookmark app with list, create, and delete links. Implementations should be small and literal. The app should serve a UI on :8080 and pass automated tests with 'cd linkshelf && go mod tidy && go test ./...'.",
     "min_architecture_bytes": 2500,
     "min_plan_bytes": 625,

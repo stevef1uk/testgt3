@@ -15,7 +15,7 @@ import (
 const webRoot = "web"
 
 // handleRoot serves the UI index page.
-func handleRoot(w http.ResponseWriter, r *http.Request) {
+func HandleRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
 		return
@@ -25,7 +25,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 
 // handleStatic serves static files under the web directory.
 // It rejects any path containing ".." to prevent directory traversal.
-func handleStatic(w http.ResponseWriter, r *http.Request) {
+func HandleStatic(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
 	if !strings.HasPrefix(uri, "/static/") {
 		http.NotFound(w, r)
@@ -61,7 +61,7 @@ func handleStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleList returns the list of links as JSON.
-func handleList(w http.ResponseWriter, r *http.Request) {
+func HandleList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -81,7 +81,7 @@ func handleList(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleCreate creates a new link from JSON payload.
-func handleCreate(w http.ResponseWriter, r *http.Request) {
+func HandleCreate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -118,7 +118,7 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 // handleDelete deletes a link by ID from the URL path.
-func handleDelete(w http.ResponseWriter, r *http.Request) {
+func HandleDelete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
