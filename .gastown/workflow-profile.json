@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "generated_at": "2026-06-11T20:18:05Z",
+  "source": "llm",
+  "confidence": "medium",
+  "validation": {
+    "layout_root": "linkshelf",
+    "bead_title_contains": "Implement linkshelf/",
+    "unittest_module": "",
+    "qa_verify_command": "cd linkshelf && go mod tidy && go test ./...",
+    "test_runner": "custom",
+    "required_files": [
+      "linkshelf/go.mod",
+      "linkshelf/internal/store/schema.go",
+      "linkshelf/internal/store/store.go",
+      "linkshelf/web/style.css",
+      "linkshelf/web/app.js",
+      "linkshelf/web/index.html",
+      "linkshelf/internal/api/handlers.go",
+      "linkshelf/cmd/server/main.go"
+    ],
+    "delivery_phases": [
+      {
+        "id": "go-module",
+        "title": "Go module",
+        "required_files": [
+          "linkshelf/go.mod"
+        ],
+        "qa_verify_command": "cd linkshelf && go mod download"
+      },
+      {
+        "id": "store-layer",
+        "title": "Store layer",
+        "required_files": [
+          "linkshelf/internal/store/schema.go",
+          "linkshelf/internal/store/store.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test ./internal/store/..."
+      },
+      {
+        "id": "web-static",
+        "title": "Web static assets",
+        "required_files": [
+          "linkshelf/web/style.css",
+          "linkshelf/web/app.js",
+          "linkshelf/web/index.html"
+        ]
+      },
+      {
+        "id": "api-handlers",
+        "title": "HTTP handlers",
+        "required_files": [
+          "linkshelf/internal/api/handlers.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test ./internal/api/..."
+      },
+      {
+        "id": "server-main",
+        "title": "Server entrypoint",
+        "required_files": [
+          "linkshelf/cmd/server/main.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test ./cmd/server/..."
+      }
+    ],
+    "active_phase_id": "server-main",
+    "spec_summary": "MVP spec for a tiny bookmark app with list, create, and delete links. Implementations should be small and literal. The app should serve a UI on :8080 and pass automated tests with 'cd linkshelf && go mod tidy && go test ./...'.",
+    "min_architecture_bytes": 2500,
+    "min_plan_bytes": 625,
+    "min_implementation_file_bytes": 400,
+    "min_substantive_lines": 3,
+    "python_venv_dir": ""
+  }
+}
