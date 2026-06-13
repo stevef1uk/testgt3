@@ -14,7 +14,7 @@ import (
 
 const webRoot = "web"
 
-// handleRoot serves the UI index page.
+// HandleRoot serves the UI index page.
 func HandleRoot(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -23,7 +23,7 @@ func HandleRoot(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join(webRoot, "index.html"))
 }
 
-// handleStatic serves static files under the web directory.
+// HandleStatic serves static files under the web directory.
 // It rejects any path containing ".." to prevent directory traversal.
 func HandleStatic(w http.ResponseWriter, r *http.Request) {
 	uri := r.URL.Path
@@ -37,7 +37,6 @@ func HandleStatic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	absPath := filepath.Join(webRoot, rel)
-
 	// Serve the file manually to avoid unexpected redirects.
 	f, err := os.Open(absPath)
 	if err != nil {
@@ -51,6 +50,7 @@ func HandleStatic(w http.ResponseWriter, r *http.Request) {
 	n, _ := f.Read(buf)
 	contentType := http.DetectContentType(buf[:n])
 	w.Header().Set("Content-Type", contentType)
+
 	// Reset file offset after reading header bytes.
 	if _, err := f.Seek(0, 0); err != nil {
 		http.NotFound(w, r)
@@ -60,7 +60,7 @@ func HandleStatic(w http.ResponseWriter, r *http.Request) {
 	_, _ = io.Copy(w, f)
 }
 
-// handleList returns the list of links as JSON.
+// HandleList returns the list of links as JSON.
 func HandleList(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -80,7 +80,7 @@ func HandleList(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-// handleCreate creates a new link from JSON payload.
+// HandleCreate creates a new link from JSON payload.
 func HandleCreate(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -117,7 +117,7 @@ func HandleCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-// handleDelete deletes a link by ID from the URL path.
+// HandleDelete deletes a link by ID from the URL path.
 func HandleDelete(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -143,4 +143,25 @@ func HandleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// Unexported wrappers used by tests – delegate to the exported handlers.
+func handleRoot(w http.ResponseWriter, r *http.Request) {
+	HandleRoot(w, r)
+}
+
+func handleStatic(w http.ResponseWriter, r *http.Request) {
+	HandleStatic(w, r)
+}
+
+func handleList(w http.ResponseWriter, r *http.Request) {
+	HandleList(w, r)
+}
+
+func handleCreate(w http.ResponseWriter, r *http.Request) {
+	HandleCreate(w, r)
+}
+
+func handleDelete(w http.ResponseWriter, r *http.Request) {
+	HandleDelete(w, r)
 }
