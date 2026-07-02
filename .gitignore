@@ -13,7 +13,6 @@ AGENTS.md
 project_label
 progress_report
 gt-agent-state.json
-<<<<<<< HEAD
 
 # Gas Town mayor/rig (rig-flow checkpoints)
 codeindex.json
@@ -36,5 +35,3 @@ run-tests.sh_backup
 qa/implementation-progress.json
 qa/qa-review-progress.json
 testgt3/
-=======
->>>>>>> d779873 (Updated test suite)
