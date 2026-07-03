@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "generated_at": "2026-07-03T19:51:37Z",
+  "source": "llm",
+  "confidence": "high",
+  "validation": {
+    "layout_root": "linkshelf",
+    "bead_title_contains": "Implement linkshelf/",
+    "unittest_module": "linkshelf",
+    "qa_verify_command": "cd linkshelf && go test ./...",
+    "test_runner": "unittest",
+    "required_files": [
+      "linkshelf/web/index.html",
+      "linkshelf/web/app.js",
+      "linkshelf/web/style.css",
+      "linkshelf/go.mod",
+      "linkshelf/cmd/server/main.go",
+      "linkshelf/internal/store/schema.go",
+      "linkshelf/internal/store/store.go",
+      "linkshelf/internal/api/handlers.go"
+    ],
+    "delivery_phases": [
+      {
+        "id": "frontend-interface",
+        "title": "Client-Side UI",
+        "required_files": [
+          "linkshelf/web/index.html",
+          "linkshelf/web/app.js",
+          "linkshelf/web/style.css"
+        ],
+        "qa_verify_command": "cd linkshelf && go run ./cmd/server && curl -s http://localhost:8080",
+        "depends_on": [
+          "backend-and-api"
+        ],
+        "spec_focus": "HTML/CSS/JS frontend for CRUD interface"
+      },
+      {
+        "id": "backend-and-api",
+        "title": "Core API & Storage",
+        "required_files": [
+          "linkshelf/go.mod",
+          "linkshelf/cmd/server/main.go",
+          "linkshelf/internal/store/schema.go",
+          "linkshelf/internal/store/store.go",
+          "linkshelf/internal/api/handlers.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "spec_focus": "Database schema, store API, HTTP handler implementation"
+      }
+    ],
+    "active_phase_id": "frontend-interface",
+    "spec_summary": "Link Shelf MVP: a minimal bookmark manager app with Go/SQLite backend and static frontend. Must implement /api/links endpoints (GET/POST/DELETE) with validation, SQLite storage (schema.go/store.go), and /web UI (CRUD via JavaScript). Passes with go test ./... and HTTP server serving UI on :8080. Uses package-level store API, no structs. Test with memory DB if optional tests added.",
+    "min_architecture_bytes": 3200,
+    "min_plan_bytes": 800,
+    "min_implementation_file_bytes": 400,
+    "min_substantive_lines": 3,
+    "python_venv_dir": ""
+  }
+}
