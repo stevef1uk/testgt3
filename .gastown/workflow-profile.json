@@ -69,7 +69,7 @@
         "qa_verify_command": "cd linkshelf && go test ./cmd/server/..."
       }
     ],
-    "active_phase_id": "go-module",
+    "active_phase_id": "store-layer",
     "spec_summary": "The Link Shelf MVP is a tiny Go‑based bookmark service that lets users list, create, and delete links via a simple web UI. The repository contains a top‑level 'linkshelf' folder with Go modules, a SQLite schema, a package‑level store, HTTP handlers, and static web assets. The data model is a Link struct (ID, Title, URL, CreatedAt) defined in internal/store/schema.go together with InitSchema that creates a 'links' table if needed. Store functions (List, Create, Delete) operate on a package‑level *sql.DB variable and enforce validation on title length and URL scheme. Handlers expose a minimal REST API (GET /api/links, POST /api/links, DELETE /api/links/{id}) and serve static files under /static/. The main program opens a SQLite file 'linkshelf.db', initialises the schema, assigns the DB to the store package, registers handlers, and starts an HTTP server on port 8080. The front‑end (web/index.html, app.js, style.css) provides a form to add links and a list that can be refreshed and modified via the API. The definition of done requires that 'go test ./...' succeeds (even without explicit tests) and that running the server serves the UI correctly. The test suite can be executed with the command specified in qa_verify_command, and the development server runs on port 8080.",
     "min_architecture_bytes": 2500,
     "min_plan_bytes": 625,
