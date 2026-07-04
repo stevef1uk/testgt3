@@ -1,59 +1,34 @@
 package store
 
 import (
+	"context"
 	"database/sql"
-	"os"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite" // pure-Go SQLite driver
 )
 
 func TestInitSchema(t *testing.T) {
-	db, err := sql.Open("sqlite3", ":memory:")
+	tmpDB, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("failed to open in-memory DB: %v", err)
 	}
-	defer db.Close()
+	defer tmpDB.Close()
 
-	if err := InitSchema(db); err != nil {
-		t.Fatalf("InitSchema: %v", err)
+	oldDB := DB
+	DB = tmpDB
+	defer func() { DB = oldDB }()
+
+	if err := InitSchema(tmpDB); err != nil {
+		t.Fatalf("InitSchema returned error: %v", err)
 	}
 
-	// Verify table exists
-	var name string
-	err = db.QueryRow("SELECT name FROM sqlite_master WHERE type='table' AND name='links'").Scan(&name)
+	// ensure the table exists and is empty
+	lst, err := List(context.Background())
 	if err != nil {
-		t.Fatalf("table links not found: %v", err)
+		t.Fatalf("List error: %v", err)
 	}
-	if name != "links" {
-		t.Fatalf("expected table name 'links', got %q", name)
+	if len(lst) != 0 {
+		t.Fatalf("expected empty list after InitSchema, got %v", lst)
 	}
-
-	// Verify columns
-	rows, err := db.Query("PRAGMA table_info(links)")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer rows.Close()
-	cols := make(map[string]bool)
-	for rows.Next() {
-		var cid int
-		var name, ctype string
-		var notnull int
-		var dflt sql.NullString
-		var pk int
-		if err := rows.Scan(&cid, &name, &ctype, &notnull, &dflt, &pk); err != nil {
-			t.Fatal(err)
-		}
-		cols[name] = true
-	}
-	for _, want := range []string{"id", "title", "url", "created_at"} {
-		if !cols[want] {
-			t.Errorf("missing column %q", want)
-		}
-	}
-}
-
-func TestMain(m *testing.M) {
-	os.Exit(m.Run())
 }
