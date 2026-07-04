@@ -1,59 +1,81 @@
 {
   "version": 1,
-  "generated_at": "2026-07-03T19:51:37Z",
+  "generated_at": "2026-07-04T05:49:17Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
     "layout_root": "linkshelf",
     "bead_title_contains": "Implement linkshelf/",
-    "unittest_module": "linkshelf",
+    "unittest_module": "",
     "qa_verify_command": "cd linkshelf && go test ./...",
-    "test_runner": "unittest",
+    "test_runner": "custom",
     "required_files": [
-      "linkshelf/web/index.html",
-      "linkshelf/web/app.js",
-      "linkshelf/web/style.css",
       "linkshelf/go.mod",
-      "linkshelf/cmd/server/main.go",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
-      "linkshelf/internal/api/handlers.go"
+      "linkshelf/web/style.css",
+      "linkshelf/web/app.js",
+      "linkshelf/web/index.html",
+      "linkshelf/internal/api/handlers.go",
+      "linkshelf/cmd/server/main.go"
     ],
     "delivery_phases": [
       {
-        "id": "frontend-interface",
-        "title": "Client-Side UI",
+        "id": "go-module",
+        "title": "Go module",
         "required_files": [
-          "linkshelf/web/index.html",
-          "linkshelf/web/app.js",
-          "linkshelf/web/style.css"
+          "linkshelf/go.mod"
         ],
-        "qa_verify_command": "cd linkshelf && go run ./cmd/server && curl -s http://localhost:8080",
-        "depends_on": [
-          "backend-and-api"
-        ],
-        "spec_focus": "HTML/CSS/JS frontend for CRUD interface"
+        "qa_verify_command": "cd linkshelf && go mod download"
       },
       {
-        "id": "backend-and-api",
-        "title": "Core API & Storage",
+        "id": "store-layer",
+        "title": "Store layer",
         "required_files": [
-          "linkshelf/go.mod",
-          "linkshelf/cmd/server/main.go",
           "linkshelf/internal/store/schema.go",
-          "linkshelf/internal/store/store.go",
+          "linkshelf/internal/store/store.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test ./internal/store/..."
+      },
+      {
+        "id": "web-static",
+        "title": "Web static assets",
+        "required_files": [
+          "linkshelf/web/style.css",
+          "linkshelf/web/app.js"
+        ]
+      },
+      {
+        "id": "web-shell",
+        "title": "Web HTML shell",
+        "required_files": [
+          "linkshelf/web/index.html"
+        ]
+      },
+      {
+        "id": "api-handlers",
+        "title": "HTTP handlers",
+        "required_files": [
           "linkshelf/internal/api/handlers.go"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./...",
-        "spec_focus": "Database schema, store API, HTTP handler implementation"
+        "qa_verify_command": "cd linkshelf && go test ./internal/api/..."
+      },
+      {
+        "id": "server-main",
+        "title": "Server entrypoint",
+        "required_files": [
+          "linkshelf/cmd/server/main.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test ./cmd/server/..."
       }
     ],
-    "active_phase_id": "frontend-interface",
-    "spec_summary": "Link Shelf MVP: a minimal bookmark manager app with Go/SQLite backend and static frontend. Must implement /api/links endpoints (GET/POST/DELETE) with validation, SQLite storage (schema.go/store.go), and /web UI (CRUD via JavaScript). Passes with go test ./... and HTTP server serving UI on :8080. Uses package-level store API, no structs. Test with memory DB if optional tests added.",
-    "min_architecture_bytes": 3200,
-    "min_plan_bytes": 800,
+    "active_phase_id": "go-module",
+    "spec_summary": "The Link Shelf MVP is a tiny Go‑based bookmark service that lets users list, create, and delete links via a simple web UI. The repository contains a top‑level 'linkshelf' folder with Go modules, a SQLite schema, a package‑level store, HTTP handlers, and static web assets. The data model is a Link struct (ID, Title, URL, CreatedAt) defined in internal/store/schema.go together with InitSchema that creates a 'links' table if needed. Store functions (List, Create, Delete) operate on a package‑level *sql.DB variable and enforce validation on title length and URL scheme. Handlers expose a minimal REST API (GET /api/links, POST /api/links, DELETE /api/links/{id}) and serve static files under /static/. The main program opens a SQLite file 'linkshelf.db', initialises the schema, assigns the DB to the store package, registers handlers, and starts an HTTP server on port 8080. The front‑end (web/index.html, app.js, style.css) provides a form to add links and a list that can be refreshed and modified via the API. The definition of done requires that 'go test ./...' succeeds (even without explicit tests) and that running the server serves the UI correctly. The test suite can be executed with the command specified in qa_verify_command, and the development server runs on port 8080.",
+    "min_architecture_bytes": 2500,
+    "min_plan_bytes": 625,
     "min_implementation_file_bytes": 400,
     "min_substantive_lines": 3,
-    "python_venv_dir": ""
+    "python_venv_dir": "",
+    "dev_server_port": 8080
   }
 }
