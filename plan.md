@@ -12,8 +12,6 @@
 - `http.ListenAndServe(":8080", nil)` and log `listening on :8080`.
 - `cd linkshelf && go test ./...` — green (packages without `*_test.go` still compile).
 - `cd linkshelf && go run ./cmd/server` — UI loads; add one link, see it, delete it.
-- `http.ListenAndServe(":8080", nil)` and log `listening on :8080`.
-- `cd linkshelf && go mod tidy` — resolve dependencies.
 
 **HTTP routes (SPEC verbatim):**
 
@@ -29,7 +27,7 @@
 
 - linkshelf/internal/store/schema.go
 - linkshelf/internal/store/store.go
-- linkshelf/internal/api/handlers.go
+- linkshelf/internal/api/
 
 ## Bead map
 
