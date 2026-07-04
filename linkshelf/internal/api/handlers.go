@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"linkshelf/internal/store"
 )
@@ -43,7 +42,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 }
 
 func Delete(w http.ResponseWriter, r *http.Request) {
-	idStr := strings.TrimPrefix(r.URL.Path, "/api/links/")
+	idStr := r.PathValue("id")
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "invalid id", http.StatusBadRequest)
