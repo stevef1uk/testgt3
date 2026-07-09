@@ -11,7 +11,7 @@
         const form = document.getElementById("linkForm");
         const urlInput = document.getElementById("urlInput");
         const titleInput = document.getElementById("titleInput");
-        const linksList = document.getElementById("linksList");
+        const linksList = document.getElementById("links");
 
         if (!form || !urlInput || !titleInput || !linksList) {
             console.error("Required DOM elements not found");
