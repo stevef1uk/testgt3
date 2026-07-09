@@ -65,6 +65,13 @@ func ListLinks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
+	// If empty, write exact [] without newline
+	if len(links) == 0 {
+		w.Write([]byte("[]"))
+		return
+	}
+	json.NewEncoder(w).Encode(links)
 	json.NewEncoder(w).Encode(links)
 }
 
