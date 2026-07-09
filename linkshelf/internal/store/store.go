@@ -24,7 +24,7 @@ func List(ctx context.Context) ([]Link, error) {
 	}
 	defer rows.Close()
 
-	var links []Link
+	links := make([]Link, 0)
 	for rows.Next() {
 		var l Link
 		if err := rows.Scan(&l.ID, &l.Title, &l.URL, &l.CreatedAt); err != nil {
