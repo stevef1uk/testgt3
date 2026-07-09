@@ -1,23 +1,23 @@
 {
   "version": 1,
-  "generated_at": "2026-07-04T05:49:17Z",
+  "generated_at": "2026-07-09T06:03:10Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
     "layout_root": "linkshelf",
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
-    "qa_verify_command": "cd linkshelf && go build ./...",
+    "qa_verify_command": "cd linkshelf && go test ./...",
     "test_runner": "custom",
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
+      "linkshelf/internal/api/handlers.go",
+      "linkshelf/cmd/server/main.go",
       "linkshelf/web/style.css",
       "linkshelf/web/app.js",
-      "linkshelf/web/index.html",
-      "linkshelf/internal/api/handlers.go",
-      "linkshelf/cmd/server/main.go"
+      "linkshelf/web/index.html"
     ],
     "delivery_phases": [
       {
@@ -38,23 +38,6 @@
         "qa_verify_command": "cd linkshelf && go test ./internal/store/..."
       },
       {
-        "id": "web-static",
-        "title": "Web static assets",
-        "required_files": [
-          "linkshelf/web/style.css",
-          "linkshelf/web/app.js"
-        ],
-        "qa_verify_command": "test -f linkshelf/web/style.css"
-      },
-      {
-        "id": "web-shell",
-        "title": "Web HTML shell",
-        "required_files": [
-          "linkshelf/web/index.html"
-        ],
-        "qa_verify_command": "test -f linkshelf/web/index.html"
-      },
-      {
         "id": "api-handlers",
         "title": "HTTP handlers",
         "required_files": [
@@ -68,16 +51,31 @@
         "required_files": [
           "linkshelf/cmd/server/main.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./cmd/server/..."
+        "qa_verify_command": "cd linkshelf && go test ./cmd/server/..."
+      },
+      {
+        "id": "web-static",
+        "title": "Web static assets",
+        "required_files": [
+          "linkshelf/web/style.css",
+          "linkshelf/web/app.js"
+        ]
+      },
+      {
+        "id": "web-shell",
+        "title": "Web HTML shell",
+        "required_files": [
+          "linkshelf/web/index.html"
+        ]
       }
     ],
-    "active_phase_id": "server-main",
-    "spec_summary": "The Link Shelf MVP is a tiny Go‑based bookmark service that lets users list, create, and delete links via a simple web UI. The repository contains a top‑level 'linkshelf' folder with Go modules, a SQLite schema, a package‑level store, HTTP handlers, and static web assets. The data model is a Link struct (ID, Title, URL, CreatedAt) defined in internal/store/schema.go together with InitSchema that creates a 'links' table if needed. Store functions (List, Create, Delete) operate on a package‑level *sql.DB variable and enforce validation on title length and URL scheme. Handlers expose a minimal REST API (GET /api/links, POST /api/links, DELETE /api/links/{id}) and serve static files under /static/. The main program opens a SQLite file 'linkshelf.db', initialises the schema, assigns the DB to the store package, registers handlers, and starts an HTTP server on port 8080. The front‑end (web/index.html, app.js, style.css) provides a form to add links and a list that can be refreshed and modified via the API. The definition of done requires that 'go test ./...' succeeds (even without explicit tests) and that running the server serves the UI correctly. The test suite can be executed with the command specified in qa_verify_command, and the development server runs on port 8080.",
+    "active_phase_id": "go-module",
+    "spec_summary": "The Link Shelf MVP is a minimal Go web application that stores and serves bookmark links. The repository lives under the directory 'linkshelf' and includes a Go module declaration, a SQLite-backed data store, HTTP handlers, and a simple static front‑end. The data model consists of a Link struct with ID, Title, URL, and CreatedAt fields; schema creation is confined to internal/store/schema.go and invoked from main and any tests. The store package provides package‑level functions List, Create, and Delete that operate on a global *sql.DB, with input validation for Title (non‑empty, ≤200 runes) and URL (must start with http:// or https://). The HTTP layer registers handlers on the default mux: a root route serving the static index.html, a static file route under /static/, and a JSON API under /api/links supporting GET, POST, and DELETE as described. The server starts by opening a file‑based SQLite database (linkshelf.db), initializing the schema, assigning it to store.DB, registering routes, and listening on :8080. A tiny front‑end located in web/ provides an input form and a list that interacts with the API via fetch calls. The definition of done requires the full Go test suite to compile and pass (`go test ./...`) and the server to run (`go run ./cmd/server`) serving the UI, where a user can add and delete links. The project does not mandate any Go test files for this MVP, but the build system will still compile the packages, ensuring correctness of the implementation.",
     "min_architecture_bytes": 2500,
     "min_plan_bytes": 625,
     "min_implementation_file_bytes": 400,
     "min_substantive_lines": 3,
-    "python_venv_dir": "",
+    "python_venv_dir": "off",
     "dev_server_port": 8080
   }
 }
