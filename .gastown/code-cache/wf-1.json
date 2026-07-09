@@ -33,5 +33,19 @@
     "validated": true,
     "validated_at": "2026-07-09T06:36:17Z",
     "created_at": "2026-07-09T06:36:17Z"
+  },
+  "3:linkshelf/cmd/server/main.go": {
+    "content": "package main\n\nimport (\n\t\"database/sql\"\n\t\"log\"\n\t\"net/http\"\n\t\"os\"\n\n\t\"linkshelf/internal/api\"\n\t\"linkshelf/internal/store\"\n\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n\nfunc main() {\n\t// Determine database path (use environment variable or default)\n\tdbPath := os.Getenv(\"LINKDB_PATH\")\n\tif dbPath == \"\" {\n\t\tdbPath = \"linkshelf.db\"\n\t}\n\n\tdb, err := sql.Open(\"sqlite3\", dbPath)\n\tif err != nil {\n\t\tlog.Fatalf(\"Failed to open database: %v\", err)\n\t}\n\tdefer db.Close()\n\n\t// Initialize schema\n\tif err := api.InitSchema(db); err != nil {\n\t\tlog.Fatalf(\"Failed to initialize schema: %v\", err)\n\t}\n\n\t// Assign the DB to the store package-level variable\n\tstore.DB = db\n\n\t// Register routes using the default mux\n\tmux := http.NewServeMux()\n\n\t// Static files\n\tmux.HandleFunc(\"/static/\", api.ServeStatic)\n\tmux.HandleFunc(\"/\", api.ServeIndex)\n\n\t// API routes\n\tmux.HandleFunc(\"/api/links\", func(w http.ResponseWriter, r *http.Request) {\n\t\tswitch r.Method {\n\t\tcase http.MethodGet:\n\t\t\tapi.ListLinks(w, r)\n\t\tcase http.MethodPost:\n\t\t\tapi.CreateLink(w, r)\n\t\tdefault:\n\t\t\thttp.Error(w, \"Method not allowed\", http.StatusMethodNotAllowed)\n\t\t}\n\t})\n\n\tmux.HandleFunc(\"/api/links/\", func(w http.ResponseWriter, r *http.Request) {\n\t\t// Only DELETE is supported for sub-path\n\t\tif r.Method != http.MethodDelete {\n\t\t\thttp.Error(w, \"Method not allowed\", http.StatusMethodNotAllowed)\n\t\t\treturn\n\t\t}\n\t\tapi.DeleteLink(w, r)\n\t})\n\n\taddr := os.Getenv(\"LISTEN_ADDR\")\n\tif addr == \"\" {\n\t\taddr = \":8080\"\n\t}\n\n\tlog.Printf(\"Starting server on %s\", addr)\n\tif err := http.ListenAndServe(addr, mux); err != nil {\n\t\tlog.Fatalf(\"Server failed: %v\", err)\n\t}\n}\n",
+    "md5": "f808ac9c273838ff809f0d5ba43fbbd2",
+    "validated": true,
+    "validated_at": "2026-07-09T14:24:48Z",
+    "created_at": "2026-07-09T14:24:48Z"
+  },
+  "3:linkshelf/cmd/server/main_test.go": {
+    "content": "package main\n\nimport (\n\t\"testing\"\n)\n\nfunc TestPlaceholder(t *testing.T) {\n\tt.Skip(\"implement tests per plan.md acceptance\")\n}\n",
+    "md5": "01086edeffd5852cad98249d53b70796",
+    "validated": true,
+    "validated_at": "2026-07-09T14:25:05Z",
+    "created_at": "2026-07-09T14:25:05Z"
   }
 }
