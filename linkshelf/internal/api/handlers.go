@@ -14,8 +14,10 @@ import (
 	"linkshelf/internal/store"
 )
 
-// Ensure webRoot is set before server starts (defaults to "web" relative to cwd).
-var webRoot = "web"
+// Ensure WebRoot is set before server starts (defaults to "web" relative to cwd).
+// WebRoot is the directory containing index.html and static assets.
+// Defaults to "web" relative to the server's working directory.
+var WebRoot = "web"
 
 // InitSchema calls store.InitSchema to initialize the database schema.
 func InitSchema(db *sql.DB) error {
@@ -28,7 +30,7 @@ func ServeIndex(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, filepath.Join(webRoot, "index.html"))
+	http.ServeFile(w, r, filepath.Join(WebRoot, "index.html"))
 }
 
 // ServeStatic serves static files from the web directory.
@@ -49,7 +51,7 @@ func ServeStatic(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
-	http.ServeFile(w, r, filepath.Join(webRoot, file))
+	http.ServeFile(w, r, filepath.Join(WebRoot, file))
 }
 
 // ListLinks returns all links as JSON.

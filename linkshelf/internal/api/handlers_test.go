@@ -272,12 +272,12 @@ func TestServeIndex(t *testing.T) {
 	origCwd, _ := os.Getwd()
 	t.Cleanup(func() { os.Chdir(origCwd) })
 
-	origWebRoot := webRoot
-	webRoot, _ = os.MkdirTemp("", "webroot")
-	t.Cleanup(func() { os.RemoveAll(webRoot); webRoot = origWebRoot })
+	origWebRoot := WebRoot
+	WebRoot, _ = os.MkdirTemp("", "webroot")
+	t.Cleanup(func() { os.RemoveAll(WebRoot); WebRoot = origWebRoot })
 
 	indexContent := "<html><body>Test</body></html>"
-	if err := os.WriteFile(filepath.Join(webRoot, "index.html"), []byte(indexContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(WebRoot, "index.html"), []byte(indexContent), 0644); err != nil {
 		t.Fatalf("write index.html: %v", err)
 	}
 
@@ -312,12 +312,12 @@ func TestServeStatic(t *testing.T) {
 	origCwd, _ := os.Getwd()
 	t.Cleanup(func() { os.Chdir(origCwd) })
 
-	origWebRoot := webRoot
-	webRoot, _ = os.MkdirTemp("", "webroot")
-	t.Cleanup(func() { os.RemoveAll(webRoot); webRoot = origWebRoot })
+	origWebRoot := WebRoot
+	WebRoot, _ = os.MkdirTemp("", "webroot")
+	t.Cleanup(func() { os.RemoveAll(WebRoot); WebRoot = origWebRoot })
 
 	cssContent := "body { color: red; }"
-	if err := os.WriteFile(filepath.Join(webRoot, "style.css"), []byte(cssContent), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(WebRoot, "style.css"), []byte(cssContent), 0644); err != nil {
 		t.Fatalf("write style.css: %v", err)
 	}
 
