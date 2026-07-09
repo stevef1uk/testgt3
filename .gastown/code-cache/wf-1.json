@@ -42,10 +42,10 @@
     "created_at": "2026-07-09T14:24:48Z"
   },
   "3:linkshelf/cmd/server/main_test.go": {
-    "content": "package main\n\nimport (\n\t\"testing\"\n)\n\nfunc TestPlaceholder(t *testing.T) {\n\tt.Skip(\"implement tests per plan.md acceptance\")\n}\n",
-    "md5": "01086edeffd5852cad98249d53b70796",
+    "content": "package main\n\nimport (\n\t\"database/sql\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"testing\"\n\n\t\"linkshelf/internal/api\"\n\t\"linkshelf/internal/store\"\n\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n\nfunc TestServerHandlers(t *testing.T) {\n\t// Open an in‑memory SQLite database.\n\tdb, err := sql.Open(\"sqlite3\", \":memory:\")\n\tif err != nil {\n\t\tt.Fatalf(\"failed to open db: %v\", err)\n\t}\n\tdefer db.Close()\n\n\t// Initialize schema.\n\tif err := api.InitSchema(db); err != nil {\n\t\tt.Fatalf(\"schema init failed: %v\", err)\n\t}\n\n\t// Wire the DB to the store package.\n\tstore.DB = db\n\n\t// Test ListLinks (GET /api/links) – should return an empty JSON array.\n\treq := httptest.NewRequest(http.MethodGet, \"/api/links\", nil)\n\trr := httptest.NewRecorder()\n\tapi.ListLinks(rr, req)\n\n\tif rr.Code != http.StatusOK {\n\t\tt.Fatalf(\"expected status %d, got %d\", http.StatusOK, rr.Code)\n\t}\n\texpectedBody := \"null\\n\"\n\tif rr.Body.String() != expectedBody {\n\t\tt.Fatalf(\"expected body %q, got %q\", expectedBody, rr.Body.String())\n\t}\n}\n",
+    "md5": "ab4f1ee9be3cf34003576505b826d62f",
     "validated": true,
-    "validated_at": "2026-07-09T14:25:05Z",
-    "created_at": "2026-07-09T14:25:05Z"
+    "validated_at": "2026-07-09T14:26:12Z",
+    "created_at": "2026-07-09T14:26:12Z"
   }
 }
