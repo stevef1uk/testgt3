@@ -73,7 +73,7 @@
         ]
       }
     ],
-    "active_phase_id": "api-handlers",
+    "active_phase_id": "server-main",
     "spec_summary": "Link Shelf is a minimal bookmark management application built with Go and SQLite. The project follows a strict directory layout: 'internal/store' for data persistence, 'internal/api' for HTTP handlers, 'cmd/server' for the entry point, and 'web' for static frontend assets. Core requirements include a Link model (ID, Title, URL, CreatedAt) and a Store API providing List, Create, and Delete functionality. Create must validate that titles are non-empty (max 200 runes) and URLs start with http:// or https://. The HTTP API provides a JSON interface for managing links and serves index.html and static assets. The application uses a package-level DB variable in the store package for simplicity. Success is defined by the ability to run 'go test ./...' and serving the UI on port 8080 where users can perform CRUD operations on their bookmarks.",
     "min_architecture_bytes": 3000,
     "min_plan_bytes": 750,
