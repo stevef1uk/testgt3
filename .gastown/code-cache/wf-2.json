@@ -1,0 +1,23 @@
+{
+  "1:linkshelf/internal/store/schema.go": {
+    "content": "package store\n\nimport (\n\t\"database/sql\"\n)\n\n// Link represents a bookmarked URL.\ntype Link struct {\n\tID        int64  `json:\"id\"`\n\tTitle     string `json:\"title\"`\n\tURL       string `json:\"url\"`\n\tCreatedAt string `json:\"created_at\"` // RFC3339 UTC\n}\n\n// InitSchema creates the links table if it does not exist.\nfunc InitSchema(db *sql.DB) error {\n\t_, err := db.Exec(`CREATE TABLE IF NOT EXISTS links (\n\t\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\t\ttitle TEXT NOT NULL,\n\t\turl TEXT NOT NULL,\n\t\tcreated_at TEXT NOT NULL DEFAULT (datetime('now'))\n\t)`)\n\treturn err\n}\n",
+    "md5": "e9e9e903f628a98d7f85d9e58970da57",
+    "validated": true,
+    "validated_at": "2026-07-13T05:39:20Z",
+    "created_at": "2026-07-13T05:39:20Z"
+  },
+  "1:linkshelf/internal/store/schema_test.go": {
+    "content": "package store\n\nimport (\n\t\"database/sql\"\n\t\"testing\"\n\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n\nfunc TestInitSchema(t *testing.T) {\n\tdb, err := sql.Open(\"sqlite3\", \":memory:\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdefer db.Close()\n\n\tif err := InitSchema(db); err != nil {\n\t\tt.Fatalf(\"InitSchema failed: %v\", err)\n\t}\n\n\t// Verify the table exists by querying its schema\n\tvar tableName string\n\terr = db.QueryRow(\"SELECT name FROM sqlite_master WHERE type='table' AND name='links'\").Scan(\u0026tableName)\n\tif err != nil {\n\t\tt.Fatalf(\"expected 'links' table to exist: %v\", err)\n\t}\n\tif tableName != \"links\" {\n\t\tt.Fatalf(\"expected table name 'links', got %q\", tableName)\n\t}\n}\n",
+    "md5": "51f59ff28ded15850b93f61c99d6f54f",
+    "validated": true,
+    "validated_at": "2026-07-13T05:39:44Z",
+    "created_at": "2026-07-13T05:39:44Z"
+  },
+  "1:linkshelf/internal/store/store.go": {
+    "content": "package store\n\nimport (\n\t\"context\"\n\t\"database/sql\"\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n)\n\nvar DB *sql.DB\n\n// List returns all links ordered by creation time descending.\nfunc List(ctx context.Context) ([]Link, error) {\n\trows, err := DB.QueryContext(ctx, \"SELECT id, title, url, created_at FROM links ORDER BY created_at DESC\")\n\tif err != nil {\n\t\treturn nil, fmt.Errorf(\"list links: %w\", err)\n\t}\n\tdefer rows.Close()\n\n\tvar links []Link\n\tfor rows.Next() {\n\t\tvar l Link\n\t\tif err := rows.Scan(\u0026l.ID, \u0026l.Title, \u0026l.URL, \u0026l.CreatedAt); err != nil {\n\t\t\treturn nil, fmt.Errorf(\"scan link: %w\", err)\n\t\t}\n\t\tlinks = append(links, l)\n\t}\n\tif err := rows.Err(); err != nil {\n\t\treturn nil, fmt.Errorf(\"rows iteration: %w\", err)\n\t}\n\tif links == nil {\n\t\tlinks = []Link{}\n\t}\n\treturn links, nil\n}\n\n// validateLink checks title and url constraints.\nfunc validateLink(title, url string) error {\n\tif len([]rune(title)) \u003e 200 {\n\t\treturn fmt.Errorf(\"title must be at most 200 characters\")\n\t}\n\tif !strings.HasPrefix(url, \"http://\") \u0026\u0026 !strings.HasPrefix(url, \"https://\") {\n\t\treturn fmt.Errorf(\"url must start with http:// or https://\")\n\t}\n\treturn nil\n}\n\n// Create inserts a new link and returns it.\nfunc Create(ctx context.Context, title, url string) (Link, error) {\n\tif err := validateLink(title, url); err != nil {\n\t\treturn Link{}, err\n\t}\n\tnow := time.Now().UTC().Format(time.RFC3339)\n\tres, err := DB.ExecContext(ctx,\n\t\t\"INSERT INTO links (title, url, created_at) VALUES (?, ?, ?)\",\n\t\ttitle, url, now)\n\tif err != nil {\n\t\treturn Link{}, fmt.Errorf(\"insert link: %w\", err)\n\t}\n\tid, err := res.LastInsertId()\n\tif err != nil {\n\t\treturn Link{}, fmt.Errorf(\"last insert id: %w\", err)\n\t}\n\treturn Link{\n\t\tID:        id,\n\t\tTitle:     title,\n\t\tURL:       url,\n\t\tCreatedAt: now,\n\t}, nil\n}\n\n// Delete removes a link by id.\nfunc Delete(ctx context.Context, id int64) error {\n\tres, err := DB.ExecContext(ctx, \"DELETE FROM links WHERE id = ?\", id)\n\tif err != nil {\n\t\treturn fmt.Errorf(\"delete link: %w\", err)\n\t}\n\tn, err := res.RowsAffected()\n\tif err != nil {\n\t\treturn fmt.Errorf(\"rows affected: %w\", err)\n\t}\n\tif n == 0 {\n\t\treturn fmt.Errorf(\"link not found\")\n\t}\n\treturn nil\n}\n",
+    "md5": "6f896c5daf8a0b81b993386c174b5df7",
+    "validated": true,
+    "validated_at": "2026-07-13T05:41:31Z",
+    "created_at": "2026-07-13T05:41:31Z"
+  }
+}
