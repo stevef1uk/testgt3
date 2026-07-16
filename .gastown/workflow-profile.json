@@ -73,7 +73,7 @@
         ]
       }
     ],
-    "active_phase_id": "store-layer",
+    "active_phase_id": "api-handlers",
     "spec_summary": "The project implements a minimal bookmark application called Link Shelf. The stack is pure Go (go 1.22) with a SQLite backing store and a tiny static web UI. The repository contains a single top‑level folder named linkshelf. Inside are go.mod, the server entry point (cmd/server/main.go), a store package (internal/store) defining the Link struct, InitSchema, and package‑level functions List, Create, and Delete, and an API package (internal/api) exposing HTTP handlers. The UI lives under linkshelf/web with index.html, app.js, and style.css. The server opens a SQLite file linkshelf.db, initialises the schema, assigns the DB to the store package, registers handlers on http.DefaultServeMux, serves static assets under /static/, and listens on port 8080. The REST API provides GET /api/links, POST /api/links (validating title and URL), and DELETE /api/links/{id}. The front‑end loads the list, allows creating and deleting links, and updates the view dynamically. The definition of done requires that `cd linkshelf && go test ./...` succeeds (even without explicit test files) and that `cd linkshelf && go run ./cmd/server` starts a server serving the UI on :8080. The test suite is invoked with the provided QA command, which compiles and runs all Go tests across the module.",
     "min_architecture_bytes": 2500,
     "min_plan_bytes": 625,
