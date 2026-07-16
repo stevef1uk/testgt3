@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "generated_at": "2026-07-13T05:12:29Z",
+  "generated_at": "2026-07-16T07:51:07Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
     "layout_root": "linkshelf",
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
-    "qa_verify_command": "cd linkshelf && go mod tidy && go test ./...",
+    "qa_verify_command": "cd linkshelf && go test ./...",
     "test_runner": "custom",
     "required_files": [
       "linkshelf/go.mod",
@@ -73,10 +73,10 @@
         ]
       }
     ],
-    "active_phase_id": "web-shell",
-    "spec_summary": "Link Shelf is a minimal bookmark management application built with Go and SQLite. The project follows a strict directory layout: 'internal/store' for data persistence, 'internal/api' for HTTP handlers, 'cmd/server' for the entry point, and 'web' for static frontend assets. Core requirements include a Link model (ID, Title, URL, CreatedAt) and a Store API providing List, Create, and Delete functionality. Create must validate that titles are non-empty (max 200 runes) and URLs start with http:// or https://. The HTTP API provides a JSON interface for managing links and serves index.html and static assets. The application uses a package-level DB variable in the store package for simplicity. Success is defined by the ability to run 'go test ./...' and serving the UI on port 8080 where users can perform CRUD operations on their bookmarks.",
-    "min_architecture_bytes": 3000,
-    "min_plan_bytes": 750,
+    "active_phase_id": "go-module",
+    "spec_summary": "The Linkshelf MVP is a minimal Go‑based bookmark manager exposing a simple HTTP UI and JSON API. The repository root contains a Go module named linkshelf with Go 1.22. Core code lives under the 'linkshelf' directory: a go.mod file, a server entry point (cmd/server/main.go), storage logic (internal/store/schema.go and internal/store/store.go) and HTTP handlers (internal/api/handlers.go). The storage layer works with a SQLite database, providing package‑level functions List, Create, and Delete, while InitSchema creates a single 'links' table defined in schema.go. The server opens (or creates) linkshelf.db, initializes the schema, wires the handlers onto http.DefaultServeMux, and serves static assets from the web subdirectory on port 8080. The web UI comprises a static index.html, a lightweight JavaScript app that fetches, adds, and deletes links via the /api/links endpoints, and a simple CSS stylesheet. The specification defines the exact HTTP contract, validation rules for incoming link data, and security checks against path traversal. Success criteria: `cd linkshelf && go test ./...` must pass (even without test files) and `cd linkshelf && go run ./cmd/server` must start the server and serve the UI on port 8080.",
+    "min_architecture_bytes": 2500,
+    "min_plan_bytes": 625,
     "min_implementation_file_bytes": 400,
     "min_substantive_lines": 3,
     "python_venv_dir": "off",
