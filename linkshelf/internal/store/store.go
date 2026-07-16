@@ -16,7 +16,7 @@ func List() ([]Link, error) {
 	}
 	defer rows.Close()
 
-	var links []Link
+	links := []Link{}
 	for rows.Next() {
 		var l Link
 		if err := rows.Scan(&l.ID, &l.Title, &l.URL, &l.CreatedAt); err != nil {

@@ -68,5 +68,19 @@
     "validated": true,
     "validated_at": "2026-07-16T08:06:33Z",
     "created_at": "2026-07-16T08:06:33Z"
+  },
+  "5:linkshelf/internal/store/store.go": {
+    "content": "package store\n\nimport (\n\t\"database/sql\"\n)\n\n// DB is the package‑level database handle. It will be set by the application\n// entrypoint (e.g., main.go) before any store functions are called.\nvar DB *sql.DB\n\n// List returns all stored links ordered by their ID.\nfunc List() ([]Link, error) {\n\trows, err := DB.Query(`SELECT id, title, url, created_at FROM links ORDER BY id`)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer rows.Close()\n\n\tlinks := []Link{}\n\tfor rows.Next() {\n\t\tvar l Link\n\t\tif err := rows.Scan(\u0026l.ID, \u0026l.Title, \u0026l.URL, \u0026l.CreatedAt); err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tlinks = append(links, l)\n\t}\n\tif err = rows.Err(); err != nil {\n\t\treturn nil, err\n\t}\n\treturn links, nil\n}\n\n// Create inserts a new Link into the database and returns its generated ID.\nfunc Create(l Link) (int64, error) {\n\tres, err := DB.Exec(\n\t\t`INSERT INTO links (title, url, created_at) VALUES (?, ?, ?)`,\n\t\tl.Title, l.URL, l.CreatedAt,\n\t)\n\tif err != nil {\n\t\treturn 0, err\n\t}\n\treturn res.LastInsertId()\n}\n\n// Delete removes the link with the specified ID from the database.\nfunc Delete(id int64) error {\n\t_, err := DB.Exec(`DELETE FROM links WHERE id = ?`, id)\n\treturn err\n}\n",
+    "md5": "49dfe16b49aece5534b0bf185cd5b3b4",
+    "validated": true,
+    "validated_at": "2026-07-16T10:12:15Z",
+    "created_at": "2026-07-16T10:12:15Z"
+  },
+  "5:linkshelf/web/index.html": {
+    "content": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\u003e\n  \u003ctitle\u003eLinkshelf\u003c/title\u003e\n  \u003clink rel=\"stylesheet\" href=\"/static/style.css\"\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv id=\"app\"\u003e\n    \u003ch1\u003eLinkshelf\u003c/h1\u003e\n    \u003cform id=\"new-link-form\"\u003e\n      \u003cinput id=\"url-input\" type=\"url\" placeholder=\"Enter URL\" required\u003e\n      \u003cinput id=\"desc-input\" type=\"text\" placeholder=\"Description\" required\u003e\n      \u003cbutton type=\"submit\"\u003eAdd Link\u003c/button\u003e\n    \u003c/form\u003e\n    \u003cul id=\"link-list\"\u003e\u003c/ul\u003e\n  \u003c/div\u003e\n  \u003cscript src=\"/static/app.js\"\u003e\u003c/script\u003e\n\u003c/body\u003e\n\u003c/html\u003e",
+    "md5": "f71c1e3680940bbdcec95ef62cbc53c7",
+    "validated": true,
+    "validated_at": "2026-07-16T10:09:49Z",
+    "created_at": "2026-07-16T10:09:49Z"
   }
 }
