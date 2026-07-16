@@ -47,5 +47,19 @@
     "validated": true,
     "validated_at": "2026-07-16T08:03:12Z",
     "created_at": "2026-07-16T08:03:12Z"
+  },
+  "4:linkshelf/web/app.js": {
+    "content": "document.addEventListener('DOMContentLoaded', () =\u003e {\n  const listEl = document.getElementById('link-list');\n  const formEl = document.getElementById('new-link-form');\n  const urlInput = document.getElementById('url-input');\n  const descInput = document.getElementById('desc-input');\n\n  function fetchLinks() {\n    fetch('/api/links')\n      .then(r =\u003e r.json())\n      .then(data =\u003e {\n        listEl.innerHTML = '';\n        data.forEach(link =\u003e {\n          const li = document.createElement('li');\n\n          const a = document.createElement('a');\n          a.href = link.url;\n          a.textContent = link.description || link.url;\n          a.target = '_blank';\n          li.appendChild(a);\n\n          const del = document.createElement('button');\n          del.textContent = 'Delete';\n          del.dataset.id = link.id;\n          del.addEventListener('click', () =\u003e deleteLink(link.id));\n          li.appendChild(del);\n\n          listEl.appendChild(li);\n        });\n      })\n      .catch(err =\u003e console.error('Failed to fetch links:', err));\n  }\n\n  function addLink(e) {\n    e.preventDefault();\n    const payload = {\n      url: urlInput.value,\n      description: descInput.value,\n    };\n    fetch('/api/links', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(payload),\n    })\n      .then(r =\u003e {\n        if (!r.ok) throw new Error('Network response was not ok');\n        return r.json();\n      })\n      .then(() =\u003e {\n        urlInput.value = '';\n        descInput.value = '';\n        fetchLinks();\n      })\n      .catch(err =\u003e console.error('Failed to add link:', err));\n  }\n\n  function deleteLink(id) {\n    fetch(`/api/links/${id}`, { method: 'DELETE' })\n      .then(r =\u003e {\n        if (!r.ok) throw new Error('Delete failed');\n        fetchLinks();\n      })\n      .catch(err =\u003e console.error('Failed to delete link:', err));\n  }\n\n  if (formEl) {\n    formEl.addEventListener('submit', addLink);\n  }\n\n  fetchLinks();\n});",
+    "md5": "038f1283b2b4785c1c20824f8264949e",
+    "validated": true,
+    "validated_at": "2026-07-16T08:07:53Z",
+    "created_at": "2026-07-16T08:07:53Z"
+  },
+  "4:linkshelf/web/style.css": {
+    "content": "/* Basic stylesheet placeholder */\nbody {\n    margin: 0;\n    padding: 0;\n    font-family: sans-serif;\n}\n",
+    "md5": "60e9697ca710e401dda928496db90df7",
+    "validated": true,
+    "validated_at": "2026-07-16T08:06:33Z",
+    "created_at": "2026-07-16T08:06:33Z"
   }
 }
