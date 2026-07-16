@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const payload = {
       url: urlInput.value,
-      description: descInput.value,
+      title: descInput.value,
     };
     fetch('/api/links', {
       method: 'POST',
