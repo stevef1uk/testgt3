@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-07-16T07:51:07Z",
+  "generated_at": "2026-07-16T07:51:40Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
@@ -74,7 +74,7 @@
       }
     ],
     "active_phase_id": "go-module",
-    "spec_summary": "The Linkshelf MVP is a minimal Go‑based bookmark manager exposing a simple HTTP UI and JSON API. The repository root contains a Go module named linkshelf with Go 1.22. Core code lives under the 'linkshelf' directory: a go.mod file, a server entry point (cmd/server/main.go), storage logic (internal/store/schema.go and internal/store/store.go) and HTTP handlers (internal/api/handlers.go). The storage layer works with a SQLite database, providing package‑level functions List, Create, and Delete, while InitSchema creates a single 'links' table defined in schema.go. The server opens (or creates) linkshelf.db, initializes the schema, wires the handlers onto http.DefaultServeMux, and serves static assets from the web subdirectory on port 8080. The web UI comprises a static index.html, a lightweight JavaScript app that fetches, adds, and deletes links via the /api/links endpoints, and a simple CSS stylesheet. The specification defines the exact HTTP contract, validation rules for incoming link data, and security checks against path traversal. Success criteria: `cd linkshelf && go test ./...` must pass (even without test files) and `cd linkshelf && go run ./cmd/server` must start the server and serve the UI on port 8080.",
+    "spec_summary": "The project implements a minimal bookmark application called Link Shelf. The stack is pure Go (go 1.22) with a SQLite backing store and a tiny static web UI. The repository contains a single top‑level folder named linkshelf. Inside are go.mod, the server entry point (cmd/server/main.go), a store package (internal/store) defining the Link struct, InitSchema, and package‑level functions List, Create, and Delete, and an API package (internal/api) exposing HTTP handlers. The UI lives under linkshelf/web with index.html, app.js, and style.css. The server opens a SQLite file linkshelf.db, initialises the schema, assigns the DB to the store package, registers handlers on http.DefaultServeMux, serves static assets under /static/, and listens on port 8080. The REST API provides GET /api/links, POST /api/links (validating title and URL), and DELETE /api/links/{id}. The front‑end loads the list, allows creating and deleting links, and updates the view dynamically. The definition of done requires that `cd linkshelf && go test ./...` succeeds (even without explicit test files) and that `cd linkshelf && go run ./cmd/server` starts a server serving the UI on :8080. The test suite is invoked with the provided QA command, which compiles and runs all Go tests across the module.",
     "min_architecture_bytes": 2500,
     "min_plan_bytes": 625,
     "min_implementation_file_bytes": 400,
