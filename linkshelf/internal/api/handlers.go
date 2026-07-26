@@ -20,17 +20,7 @@ func handleRoot(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath.Join("web", "index.html"))
 }
 
-// handleStatic serves static files from the ./web directory.
-func handleStatic(w http.ResponseWriter, r *http.Request) {
-	// Trim the leading '/' and ensure the path stays within the web directory.
-	trimmed := strings.TrimPrefix(r.URL.Path, "/")
-	if trimmed == "" {
-		http.NotFound(w, r)
-		return
-	}
-	// Only allow files inside the web folder.
-	http.ServeFile(w, r, filepath.Join("web", trimmed))
-}
+
 
 // handleList returns all stored links as JSON.
 // Expected method: GET.
@@ -87,8 +77,22 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 
 // RegisterHandlers registers the API route handlers on the provided mux.
 func RegisterHandlers(mux *http.ServeMux) {
+	mux.HandleFunc("/", handleRoot)
+	mux.HandleFunc("/static/", handleStatic)
 	mux.HandleFunc("/api/links", handleLinks)
 	mux.HandleFunc("/api/links/", handleDelete)
+}
+
+// handleStatic serves static files from the ./web directory under the /static/ prefix.
+func handleStatic(w http.ResponseWriter, r *http.Request) {
+	// Strip the /static/ prefix from the request path.
+	trimmed := strings.TrimPrefix(r.URL.Path, "/static/")
+	if trimmed == "" || strings.Contains(trimmed, "..") {
+		http.NotFound(w, r)
+		return
+	}
+	// Only allow files inside the web folder.
+	http.ServeFile(w, r, filepath.Join("web", trimmed))
 }
 
 // handleLinks dispatches to the appropriate handler based on the HTTP method.
