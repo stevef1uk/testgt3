@@ -13,7 +13,9 @@
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
+      "linkshelf/internal/store/store_test.go",
       "linkshelf/internal/api/handlers.go",
+      "linkshelf/internal/api/handlers_test.go",
       "linkshelf/cmd/server/main.go",
       "linkshelf/package.json",
       "linkshelf/tsconfig.json",
@@ -35,7 +37,8 @@
         "title": "Store layer",
         "required_files": [
           "linkshelf/internal/store/schema.go",
-          "linkshelf/internal/store/store.go"
+          "linkshelf/internal/store/store.go",
+          "linkshelf/internal/store/store_test.go"
         ],
         "qa_verify_command": "cd linkshelf && go test ./internal/store/..."
       },
@@ -43,7 +46,8 @@
         "id": "api-handlers",
         "title": "HTTP handlers",
         "required_files": [
-          "linkshelf/internal/api/handlers.go"
+          "linkshelf/internal/api/handlers.go",
+          "linkshelf/internal/api/handlers_test.go"
         ],
         "qa_verify_command": "cd linkshelf && go test ./internal/api/..."
       },
@@ -62,7 +66,8 @@
           "linkshelf/package.json",
           "linkshelf/tsconfig.json",
           "linkshelf/web/style.css",
-          "linkshelf/web/app.js"
+          "linkshelf/web/app.js",
+          "linkshelf/web/index.html"
         ],
         "qa_verify_command": "cd linkshelf && echo 'no verify command inferred'"
       },
