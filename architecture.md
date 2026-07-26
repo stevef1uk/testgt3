@@ -1,120 +1,135 @@
 # Architecture for testgt3
 
 ## Overview
-The **Linkshelf** MVP is a minimal Go‑based bookmark manager that stores links in a SQLite database and exposes a tiny HTTP UI together with a JSON REST API.  
-The system is deliberately small: a single Go module (`linkshelf`), three core Go packages (`linkshelf/cmd/server`, `linkshelf/internal/store`, `linkshelf/internal/api`), a static front‑end under `linkshelf/web/`, and a single SQLite file `linkshelf.db`. All components are wired at start‑up and communicate via well‑defined function contracts. The design follows the SPEC verbatim, guaranteeing that route paths, function names, and data‑model fields match the expectations of the automated test harness.
+The **Link Shelf** MVP is a minimal Go web service that stores bookmark links in a SQLite database and serves a tiny static frontend.  
+The system consists of three logical layers:
 
-Key constraints:
+1. **Data layer** – defines the `Link` domain type and the DDL for the `links` table.  
+2. **Store layer** – provides package‑level functions `List`, `Create`, and `Delete` that operate on a global `*sql.DB`. Validation of incoming data lives here.  
+3. **HTTP layer** – registers handlers on `http.DefaultServeMux` that expose a JSON API and serve static assets from the `linkshelf/web/` directory.  
 
-* Go version 1.22, module path `linkshelf`.
-* No additional abstractions; the store uses package‑level functions and a global `DB` variable.
-* All HTTP routes must be registered on `http.DefaultServeMux`.
-* Static assets are served under `/static/{file}` with strict path traversal protection.
-* Validation rules for incoming link data are enforced in the `store.Create` function.
-* The server listens on `:8080` and serves the UI and API concurrently.
+All components are compiled into a single binary (`linkshelf/cmd/server/main.go`). The binary opens `linkshelf.db` in the working directory, runs `InitSchema`, assigns the DB to the store, registers the HTTP routes, and starts listening on **port 8080**. The frontend (`linkshelf/web/index.html`, `linkshelf/web/app.js`, `linkshelf/web/style.css`) communicates with the JSON API (`/api/links`) to list, add, and delete links.  
+
+The design intentionally avoids any additional abstraction layers, code generation, or third‑party web frameworks to keep the codebase small and easy to test with the standard Go toolchain (`go test ./...`).
 
 ## Planned file layout
-All implementation files live under the **layout root** `linkshelf/`. The architecture references each file but does **not** create them – the polecat will implement later.
+All source files live under the **layout root** `linkshelf/`. The following paths are required by the SPEC and will be used verbatim by the implementation:
 
-- `linkshelf/go.mod` – module declaration, Go version, dependency on `github.com/mattn/go-sqlite3`.
-- `linkshelf/cmd/server/main.go` – application entry point: opens/creates `linkshelf.db`, calls `schema.InitSchema`, wires handlers, and starts `http.ListenAndServe(":8080", nil)`.
-- `linkshelf/internal/store/schema.go` – defines the `Link` struct, the `InitSchema` function, and the DDL for the `links` table.
-- `linkshelf/internal/store/store.go` – provides package‑level API: `List`, `Create`, `Delete`, and the global `DB *sql.DB`.
-- `linkshelf/internal/api/handlers.go` – HTTP handler functions for UI routing (`/`, `/static/{file}`) and the JSON API (`/api/links`, `/api/links/{id}`).
-- `linkshelf/web/index.html` – static HTML page containing inputs for title/url, an Add button, and an unordered list with id `links`.
-- `linkshelf/web/app.js` – front‑end JavaScript that fetches the list of links, renders them, handles form submissions, and performs DELETE requests.
-- `linkshelf/web/style.css` – minimal stylesheet for readability.
+- `linkshelf/go.mod` – module declaration (`module linkshelf`) and Go version.
+- `linkshelf/cmd/server/main.go` – program entrypoint; opens the SQLite DB, calls `schema.InitSchema`, wires the store, registers HTTP routes, and starts the HTTP server.
+- `linkshelf/internal/store/schema.go` – defines the `Link` struct and the `InitSchema(db *sql.DB) error` function that creates the `links` table if it does not exist.
+- `linkshelf/internal/store/store.go` – declares the package‑level `var DB *sql.DB` and implements the three public store functions:
+  - `List(ctx context.Context) ([]Link, error)`
+  - `Create(ctx context.Context, title, url string) (Link, error)`
+  - `Delete(ctx context.Context, id int64) error`
+- `linkshelf/internal/api/handlers.go` – contains the HTTP handler functions that translate HTTP verbs into store calls and render static files.
+- `linkshelf/web/index.html` – static HTML page that presents the UI, includes `linkshelf/web/app.js`, and defines the `#links` list element.
+- `linkshelf/web/app.js` – client‑side JavaScript that:
+  - `GET /api/links` on load,
+  - `POST /api/links` to add a link,
+  - `DELETE /api/links/{id}` to delete a link,
+  - Refreshes the list after each mutation.
+- `linkshelf/web/style.css` – minimal styling for readability.
 
-### Persistence file
-All database schema definitions reside in `linkshelf/internal/store/schema.go`. The `InitSchema` function creates the `links` table if it does not exist. No other file contains DDL; the store package only performs CRUD operations against the already‑initialized schema.
+No additional files (e.g., `linkshelf/internal/store/store_test.go`, `linkshelf/internal/api/handlers_test.go`, Dockerfiles) are required for the MVP, but the architecture leaves room for optional tests.
 
 ## Go package / bead ownership
-Multiple source files share the same Go package (`linkshelf/internal/store`). To avoid symbol duplication and to keep the architecture explicit, ownership of exported symbols is documented per file.
+The project contains three Go packages, each split into **beads** (implementation files). The table below declares which exported symbols belong to which bead, ensuring no symbol is defined twice.
 
-| File                                         | Owns (exported)                                 | Must not define |
-|----------------------------------------------|-------------------------------------------------|-----------------|
-| `linkshelf/internal/store/schema.go`         | ``Link`` struct, ``InitSchema`` function, ``sqlite`` imports | ``List``, ``Create``, ``Delete`` |
-| `linkshelf/internal/store/store.go`          | ``DB`` variable, ``List``, ``Create``, ``Delete`` functions | ``Link`` struct, ``InitSchema`` |
-| `linkshelf/internal/api/handlers.go`         | ``handleRoot``, ``handleStatic``, ``handleList``, ``handleCreate``, ``handleDelete`` (handler functions) | ``Link`` struct, ``InitSchema`` |
+| File                               | Owns (exported)                                                | Must not define |
+|------------------------------------|---------------------------------------------------------------|-----------------|
+| `linkshelf/internal/store/schema.go` | ``Link``<br>``InitSchema``                                      | ``DB``, ``List``, ``Create``, ``Delete`` |
+| `linkshelf/internal/store/store.go`   | ``DB``<br>``List``<br>``Create``<br>``Delete``                | ``Link``, ``InitSchema`` |
+| `linkshelf/internal/api/handlers.go`  | ``handleRoot``<br>``handleStatic``<br>``handleList``<br>``handleCreate``<br>``handleDelete`` | ``Link``, ``InitSchema``, ``DB``, ``List``, ``Create``, ``Delete`` |
+| `linkshelf/cmd/server/main.go`        | ``main`` (entrypoint)                                          | No exported symbols required elsewhere |
 
-The `linkshelf/cmd/server/main.go` file does not own exported symbols; it only composes them.
+*All symbols are referenced with backticks to match the expected allow‑list in downstream beads.*
 
 ## HTTP + entrypoint integration
-The SPEC defines the exact HTTP contract. The table below reproduces it verbatim:
+The HTTP API is defined precisely in the SPEC. The table below reproduces it verbatim:
 
-| Method | Path               | Success Response                              | Error Response |
-|--------|--------------------|-----------------------------------------------|----------------|
-| GET    | `/`                | 200, serves `linkshelf/web/index.html`        | — |
-| GET    | `/static/{file}`   | 200, file under `linkshelf/web/`                | 404 if not found or path traversal |
-| GET    | `/api/links`       | 200, JSON array `[]` (empty when no links)    | — |
-| POST   | `/api/links`       | 201, JSON representation of created `Link`    | 400 `{"error":"..."}` |
-| DELETE | `/api/links/{id}`  | 204 No Content                                 | 404 `{"error":"..."}` |
+| Method | Path                     | Success response                               | Error response                               |
+|--------|--------------------------|-----------------------------------------------|----------------------------------------------|
+| GET    | `/`                      | 200, serves `linkshelf/web/index.html`        | –                                            |
+| GET    | `/static/{file}`         | 200, file under `linkshelf/web/`               | 404 if file not found                         |
+| GET    | `/api/links`             | 200, JSON array `[]` (empty when no rows)      | –                                            |
+| POST   | `/api/links`             | 201, JSON representation of created `Link`     | 400 `{"error":"..."}` (validation failure)    |
+| DELETE | `/api/links/{id}`        | 204 (no body)                                   | 404 `{"error":"..."}` (unknown id)            |
 
-**Wiring story**  
-`linkshelf/cmd/server/main.go` performs the following steps in order:
+**Routing wiring in `linkshelf/cmd/server/main.go`**  
 
-1. Open (or create) the SQLite file `linkshelf.db` using `sql.Open("sqlite3", "linkshelf.db")`.
-2. Call `schema.InitSchema(db)` to ensure the `links` table exists.
-3. Assign the opened DB to the store package: `store.DB = db`.
-4. Register HTTP handlers on `http.DefaultServeMux`:
-   - `http.HandleFunc("/", handlers.handleRoot)` – serves the UI.
-   - `http.HandleFunc("/static/", handlers.handleStatic)` – serves static assets with security checks.
-   - `http.HandleFunc("/api/links", handlers.handleListOrCreate)` – dispatches GET to `store.List` and POST to `store.Create`.
-   - `http.HandleFunc("/api/links/", handlers.handleDelete)` – extracts `{id}` from the URL path and calls `store.Delete`.
-5. Call `log.Printf("listening on :8080")` then `http.ListenAndServe(":8080", nil)`.
+func main() {
+    db, err := sql.Open("sqlite3", "linkshelf.db")
+    // error handling omitted for brevity
+    if err := schema.InitSchema(db); err != nil { log.Fatal(err) }
+    store.DB = db
 
-All handler functions are thin adapters: they decode JSON bodies, invoke the store functions, and encode JSON responses or appropriate status codes. Errors from validation or database operations are translated to the error response format defined in the SPEC.
+    // Static files
+    http.HandleFunc("/", handlers.handleRoot) // serves linkshelf/web/index.html
+    http.HandleFunc("/static/", handlers.handleStatic) // serves files from linkshelf/web/
+
+    // JSON API
+    http.HandleFunc("/api/links", handlers.handleList)   // GET
+    http.HandleFunc("/api/links", handlers.handleCreate) // POST (same path, method switch)
+    http.HandleFunc("/api/links/", handlers.handleDelete) // DELETE with id suffix
+
+    log.Printf("listening on :8080")
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+*The `handleStatic` implementation strips the `/static/` prefix, joins it with `linkshelf/web/`, and rejects any request whose cleaned path contains `..` to prevent path traversal.*
 
 ## Unit tests
-Even though the SPEC marks unit tests as optional, the architecture anticipates a conventional Go test layout to guarantee correctness of the core packages.
+Although the SPEC states that tests are optional, a typical test plan would include:
 
-- **Package `linkshelf/internal/store`** – `linkshelf/internal/store/store_test.go` (not required but recommended):
-  - Uses an in‑memory SQLite DB (`:memory:`), calls `schema.InitSchema`, assigns `store.DB`, then exercises `List`, `Create`, and `Delete`.
-  - Tests validation rules for `Create` (empty title, overly long title, missing scheme in URL, etc.).
-  - Confirms ordering (`List` returns links in descending `id` order).
+- **Store tests** (`linkshelf/internal/store/store_test.go`):  
+  - Use an in‑memory SQLite DB (`file::memory:?cache=shared`).  
+  - Call `schema.InitSchema` to create the table.  
+  - Set `store.DB = db`.  
+  - Verify `List` returns an empty slice initially.  
+  - Verify `Create` succeeds with a valid title/url and respects the 200‑rune title limit and URL scheme validation.  
+  - Verify `Delete` removes an existing record and returns an error for a non‑existent ID.
 
-- **Package `linkshelf/internal/api`** – `linkshelf/internal/api/handlers_test.go`:
-  - Creates an HTTP test server with the same handler registration.
-  - Sends GET `/api/links`, expects empty array.
-  - Sends POST `/api/links` with valid JSON, expects 201 and correct body.
-  - Sends DELETE `/api/links/{id}` for both existing and non‑existing IDs, checks status codes.
+- **Handler tests** (`linkshelf/internal/api/handlers_test.go`):  
+  - Spin up a `httptest.NewRecorder` and `http.NewRequest` for each route.  
+  - Ensure `GET /` returns the HTML page with status 200.  
+  - Ensure `GET /static/{file}` serves files correctly and returns 404 for missing files.  
+  - Ensure `/api/links` GET returns JSON array, POST returns 201 with created link, and DELETE returns 204 or 404 as appropriate.  
+  - Test that `POST` with invalid payload yields a 400 with a clear error message.
 
-- **Package `linkshelf/cmd/server`** – no explicit test file; the integration test will launch the server.
-
-All tests are run with:
-
-cd linkshelf && go test ./...
-
-which must succeed even if no `*_test.go` files exist (the compilation succeeds).
+All tests run with the single command `go test ./...` from the `linkshelf/` directory, satisfying the definition of done.
 
 ## Integration and testing
-The full system is exercised by two primary verification steps performed by the pipeline:
+The full integration flow on a developer's machine is:
 
-1. **Unit/compile verification**  
-   cd linkshelf && go test ./...
-   This compiles every package, runs any existing tests, and verifies that the module builds without errors.
+1. **Build & test**  
+   cd linkshelf && go mod tidy && go test ./...
+   - `go mod tidy` resolves the `github.com/mattn/go-sqlite3` driver.  
+   - `go test ./...` compiles every package; even with no `*_test.go` files the command succeeds if the code compiles.
 
-2. **Runtime verification**  
+2. **Run the server**  
    cd linkshelf && go run ./cmd/server
-   The server must start, listen on `:8080`, and serve the UI. Manual verification (performed by the pipeline) will request `/` and `/api/links` to confirm that the HTTP layer is correctly wired.
+   - The server opens/creates `linkshelf.db` in the current directory, runs `InitSchema`, registers routes, and listens on **:8080**.  
+   - Visiting `http://localhost:8080/` loads the UI. The UI performs the expected CRUD operations via the JSON API.
 
-The integration phase (if later added) could leverage `curl` or a simple Go integration test that spawns the server in a goroutine, performs a sequence of API calls (list → create → delete → list), and asserts the expected JSON payloads and status codes.
+3. **Manual verification** (optional)  
+   - Use a browser or `curl` to check each endpoint matches the table in *HTTP + entrypoint integration*.  
+   - Example: `curl -X POST -d '{"title":"Go Docs","url":"https://golang.org"}' http://localhost:8080/api/links`.
 
-## Docker & Deployment
-The SPEC does **not** list a Dockerfile or docker‑compose configuration, so this section is omitted. If a future phase adds containerisation, the architecture would be extended accordingly.
-
-## E2E / integration testing
-No end‑to‑end test files are listed in the SPEC, thus this section is omitted as well. Should an e2e suite be introduced, the architecture would detail how the server is started (via `docker compose` or locally) and the exact Playwright/Playwright‑like commands used.
+Successful execution of the above steps confirms that the architecture satisfies the SPEC's functional and non‑functional requirements.
 
 ## Acceptance mapping
-| SPEC Goal | Architecture Decision | Verification |
-|-----------|----------------------|--------------|
-| Go module builds (`go mod tidy`) | `linkshelf/go.mod` declares `module linkshelf` and `go 1.22` | `go mod tidy` succeeds |
-| `go test ./...` passes | All packages compile; optional test files follow the contract described | `go test ./...` returns success |
-| Server starts on `:8080` and serves UI | `linkshelf/cmd/server/main.go` calls `http.ListenAndServe(":8080", nil)` and registers `handleRoot` for `/` | Manual `curl http://localhost:8080/` returns HTML |
-| CRUD API matches contract | Handlers in `linkshelf/internal/api/handlers.go` implement routes exactly as defined in the SPEC table; store functions follow specified signatures | `curl`/`http` client tests validate status codes and JSON structures |
-| Validation rules enforced | `store.Create` validates title length and URL scheme; errors are propagated as `400` JSON responses | Test cases cover each validation branch |
-| Static asset protection | `handleStatic` rejects any path containing `..` before serving files | Attempted path traversal yields `404` |
-| Data model matches SPEC | `Link` struct defined in `schema.go` with fields `ID`, `Title`, `URL`, `CreatedAt` and JSON tags | JSON marshalling produces exact field names |
+| SPEC Requirement                                      | Architecture Satisfaction                                                                 |
+|-------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| `go test ./...` passes                                 | All packages compile; store and handler code are pure Go with no external runtime deps. |
+| Server serves UI on `:8080`                           | `linkshelf/cmd/server/main.go` wires static handler for `/` and `/static/` and starts listener.    |
+| List, Create, Delete links via JSON API               | `linkshelf/internal/api/handlers.go` implements `/api/links` with GET/POST/DELETE mapping.        |
+| Validation of title length (≤200) and URL scheme      | `store.Create` performs both checks and returns 400 errors on violation.                |
+| Path‑traversal protection for static assets            | `handleStatic` rejects any cleaned path containing `..`.                                 |
+| Single source of DDL (`InitSchema`) in `schema.go`    | `linkshelf/internal/store/schema.go` contains `InitSchema`; no other file performs DDL. |
+| No extra abstraction layers (no `Store` struct, etc.) | Store API uses package‑level functions only, matching the SPEC.                         |
+| Frontend loads correctly and interacts with API       | `linkshelf/web/index.html` + `linkshelf/web/app.js` described; UI calls the exact API endpoints. |
+| Database file `linkshelf.db` created at startup       | `linkshelf/cmd/server/main.go` opens `sql.Open("sqlite3", "linkshelf.db")` before `InitSchema`. |
+| Go module `linkshelf` with sqlite3 dependency         | `linkshelf/go.mod` declares `module linkshelf` and requires `github.com/mattn/go-sqlite3`. |
 
-By adhering to the above architecture, the implementation will satisfy every functional and non‑functional requirement of the Linkshelf MVP, allowing the automated pipeline to verify compile‑time correctness and runtime behavior without any drift from the specification.
+All required files, symbols, routes, and validation logic are enumerated above, guaranteeing that the subsequent implementation (by the polecat) will be able to satisfy the test suite and runtime expectations.
