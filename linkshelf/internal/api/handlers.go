@@ -85,6 +85,24 @@ func handleCreate(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(link)
 }
 
+// RegisterHandlers registers the API route handlers on the provided mux.
+func RegisterHandlers(mux *http.ServeMux) {
+	mux.HandleFunc("/api/links", handleLinks)
+	mux.HandleFunc("/api/links/", handleDelete)
+}
+
+// handleLinks dispatches to the appropriate handler based on the HTTP method.
+func handleLinks(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		handleList(w, r)
+	case http.MethodPost:
+		handleCreate(w, r)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
 // handleDelete removes a link by ID.
 // Expected method: DELETE on path /api/links/{id}.
 func handleDelete(w http.ResponseWriter, r *http.Request) {
