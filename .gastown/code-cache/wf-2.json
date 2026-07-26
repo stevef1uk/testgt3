@@ -62,33 +62,40 @@
     "validated_at": "2026-07-26T08:41:18Z",
     "created_at": "2026-07-26T08:41:18Z"
   },
+  "4:linkshelf/package.json": {
+    "content": "{\n  \"name\": \"linkshelf\",\n  \"version\": \"1.0.0\",\n  \"scripts\": {\n    \"build\": \"echo 'Build script not implemented'\",\n    \"start\": \"echo 'Start script not implemented'\"\n  },\n  \"dependencies\": {\n    \"express\": \"^4.17.1\"\n  },\n  \"devDependencies\": {\n    \"@types/express\": \"^4.17.13\"\n  }\n}\n",
+    "md5": "cfa5a5478732391409ae595a0724a0fa",
+    "validated": true,
+    "validated_at": "2026-07-26T11:40:56Z",
+    "created_at": "2026-07-26T11:40:56Z"
+  },
   "4:linkshelf/tsconfig.json": {
     "content": "{\n  \"compilerOptions\": {\n    \"esModuleInterop\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"isolatedModules\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"node\",\n    \"outDir\": \"./dist\",\n    \"rootDir\": \"./\",\n    \"skipLibCheck\": true,\n    \"strict\": true,\n    \"target\": \"es6\"\n  }\n}",
     "md5": "402258c53dbb4c9a8895d0b4f3a842f6",
     "validated": true,
-    "validated_at": "2026-07-26T11:34:05Z",
-    "created_at": "2026-07-26T11:34:05Z"
+    "validated_at": "2026-07-26T11:40:56Z",
+    "created_at": "2026-07-26T11:40:56Z"
   },
   "4:linkshelf/web/app.js": {
     "content": "document.addEventListener('DOMContentLoaded', () =\u003e {\n  const listEl = document.getElementById('link-list');\n  const formEl = document.getElementById('new-link-form');\n  const urlInput = document.getElementById('url-input');\n  const descInput = document.getElementById('desc-input');\n\n  function fetchLinks() {\n    fetch('/api/links')\n      .then(r =\u003e r.json())\n      .then(data =\u003e {\n        listEl.innerHTML = '';\n        data.forEach(link =\u003e {\n          const li = document.createElement('li');\n\n          const a = document.createElement('a');\n          a.href = link.url;\n          a.textContent = link.description || link.url;\n          a.target = '_blank';\n          li.appendChild(a);\n\n          const del = document.createElement('button');\n          del.textContent = 'Delete';\n          del.dataset.id = link.id;\n          del.addEventListener('click', () =\u003e deleteLink(link.id));\n          li.appendChild(del);\n\n          listEl.appendChild(li);\n        });\n      })\n      .catch(err =\u003e console.error('Failed to fetch links:', err));\n  }\n\n  function addLink(e) {\n    e.preventDefault();\n    const payload = {\n      url: urlInput.value,\n      title: descInput.value,\n    };\n    fetch('/api/links', {\n      method: 'POST',\n      headers: { 'Content-Type': 'application/json' },\n      body: JSON.stringify(payload),\n    })\n      .then(r =\u003e {\n        if (!r.ok) throw new Error('Network response was not ok');\n        return r.json();\n      })\n      .then(() =\u003e {\n        urlInput.value = '';\n        descInput.value = '';\n        fetchLinks();\n      })\n      .catch(err =\u003e console.error('Failed to add link:', err));\n  }\n\n  function deleteLink(id) {\n    fetch(`/api/links/${id}`, { method: 'DELETE' })\n      .then(r =\u003e {\n        if (!r.ok) throw new Error('Delete failed');\n        fetchLinks();\n      })\n      .catch(err =\u003e console.error('Failed to delete link:', err));\n  }\n\n  if (formEl) {\n    formEl.addEventListener('submit', addLink);\n  }\n\n  fetchLinks();\n});\n",
     "md5": "86753b1c33a96f85f275d0aedc9ece2b",
     "validated": true,
-    "validated_at": "2026-07-26T11:34:05Z",
-    "created_at": "2026-07-26T11:34:05Z"
+    "validated_at": "2026-07-26T11:40:56Z",
+    "created_at": "2026-07-26T11:40:56Z"
   },
   "4:linkshelf/web/index.html": {
     "content": "\u003c!DOCTYPE html\u003e\n\u003chtml lang=\"en\"\u003e\n\u003chead\u003e\n  \u003cmeta charset=\"UTF-8\"\u003e\n  \u003cmeta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"\u003e\n  \u003ctitle\u003eLinkshelf\u003c/title\u003e\n  \u003clink rel=\"stylesheet\" href=\"/static/style.css\"\u003e\n\u003c/head\u003e\n\u003cbody\u003e\n  \u003cdiv id=\"app\"\u003e\n    \u003ch1\u003eLinkshelf\u003c/h1\u003e\n    \u003cform id=\"new-link-form\"\u003e\n      \u003cinput id=\"url-input\" type=\"url\" placeholder=\"Enter URL\" required\u003e\n      \u003cinput id=\"desc-input\" type=\"text\" placeholder=\"Description\" required\u003e\n      \u003cbutton type=\"submit\"\u003eAdd Link\u003c/button\u003e\n    \u003c/form\u003e\n    \u003cul id=\"link-list\"\u003e\u003c/ul\u003e\n  \u003c/div\u003e\n  \u003cscript src=\"/static/app.js\"\u003e\u003c/script\u003e\n\u003c/body\u003e\n\u003c/html\u003e\n",
     "md5": "f243c5051c0a145b9d8ef58a730ab0b8",
     "validated": true,
-    "validated_at": "2026-07-26T11:34:05Z",
-    "created_at": "2026-07-26T11:34:05Z"
+    "validated_at": "2026-07-26T11:40:56Z",
+    "created_at": "2026-07-26T11:40:56Z"
   },
   "4:linkshelf/web/style.css": {
-    "content": "/* Basic stylesheet placeholder */\nbody {\n    margin: 0;\n    padding: 0;\n    font-family: sans-serif;\n}\n",
-    "md5": "60e9697ca710e401dda928496db90df7",
+    "content": "* {\n    box-sizing: border-box;\n}\n\nbody {\n    margin: 0;\n    padding: 20px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n    background-color: #f5f5f5;\n    color: #333;\n    line-height: 1.6;\n}\n\n#app {\n    max-width: 640px;\n    margin: 0 auto;\n    background: #fff;\n    padding: 24px 32px;\n    border-radius: 8px;\n    box-shadow: 0 1px 4px rgba(0,0,0,0.1);\n}\n\nh1 {\n    font-size: 1.8rem;\n    margin-top: 0;\n    color: #222;\n    border-bottom: 2px solid #eee;\n    padding-bottom: 12px;\n}\n\n#new-link-form {\n    display: flex;\n    flex-wrap: wrap;\n    gap: 8px;\n    margin-bottom: 20px;\n}\n\n#new-link-form input {\n    flex: 1 1 200px;\n    padding: 10px 12px;\n    border: 1px solid #ccc;\n    border-radius: 4px;\n    font-size: 0.95rem;\n}\n\n#new-link-form button {\n    padding: 10px 20px;\n    background: #007bff;\n    color: #fff;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 0.95rem;\n    transition: background 0.2s;\n}\n\n#new-link-form button:hover {\n    background: #0056b3;\n}\n\n#link-list {\n    list-style: none;\n    padding: 0;\n    margin: 0;\n}\n\n#link-list li {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    padding: 10px 12px;\n    border-bottom: 1px solid #eee;\n    gap: 12px;\n}\n\n#link-list li:last-child {\n    border-bottom: none;\n}\n\n#link-list li a {\n    flex: 1;\n    color: #007bff;\n    text-decoration: none;\n    word-break: break-all;\n}\n\n#link-list li a:hover {\n    text-decoration: underline;\n}\n\n#link-list li button {\n    padding: 4px 10px;\n    background: #dc3545;\n    color: #fff;\n    border: none;\n    border-radius: 4px;\n    cursor: pointer;\n    font-size: 0.85rem;\n    white-space: nowrap;\n    transition: background 0.2s;\n}\n\n#link-list li button:hover {\n    background: #a71d2a;\n}",
+    "md5": "98d2c068db3695031b51d0ef16181d31",
     "validated": true,
-    "validated_at": "2026-07-26T11:34:05Z",
-    "created_at": "2026-07-26T11:34:05Z"
+    "validated_at": "2026-07-26T11:41:32Z",
+    "created_at": "2026-07-26T11:41:32Z"
   },
   "5:linkshelf/internal/store/store.go": {
     "content": "package store\n\nimport (\n\t\"database/sql\"\n)\n\n// DB is the package‑level database handle. It will be set by the application\n// entrypoint (e.g., main.go) before any store functions are called.\nvar DB *sql.DB\n\n// List returns all stored links ordered by their ID.\nfunc List() ([]Link, error) {\n\trows, err := DB.Query(`SELECT id, title, url, created_at FROM links ORDER BY id`)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer rows.Close()\n\n\tlinks := []Link{}\n\tfor rows.Next() {\n\t\tvar l Link\n\t\tif err := rows.Scan(\u0026l.ID, \u0026l.Title, \u0026l.URL, \u0026l.CreatedAt); err != nil {\n\t\t\treturn nil, err\n\t\t}\n\t\tlinks = append(links, l)\n\t}\n\tif err = rows.Err(); err != nil {\n\t\treturn nil, err\n\t}\n\treturn links, nil\n}\n\n// Create inserts a new Link into the database and returns its generated ID.\nfunc Create(l Link) (int64, error) {\n\tres, err := DB.Exec(\n\t\t`INSERT INTO links (title, url, created_at) VALUES (?, ?, ?)`,\n\t\tl.Title, l.URL, l.CreatedAt,\n\t)\n\tif err != nil {\n\t\treturn 0, err\n\t}\n\treturn res.LastInsertId()\n}\n\n// Delete removes the link with the specified ID from the database.\nfunc Delete(id int64) error {\n\t_, err := DB.Exec(`DELETE FROM links WHERE id = ?`, id)\n\treturn err\n}\n",
