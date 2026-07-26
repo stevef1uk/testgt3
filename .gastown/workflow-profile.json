@@ -80,7 +80,7 @@
         "qa_verify_command": "cd linkshelf && echo 'no verify command inferred'"
       }
     ],
-    "active_phase_id": "store-layer",
+    "active_phase_id": "api-handlers",
     "spec_summary": "A minimal bookmark app (MVP) implemented in Go with SQLite. Features: list, create, and delete links. The stack uses Go 1.22, the mattn/go-sqlite3 driver, and a simple frontend (HTML, CSS, JS). The internal store uses package-level functions and a global DB variable, with validation on Create (title and URL constraints). The HTTP API serves static files and REST endpoints. Unit tests (if added) use an in-memory SQLite database. To run the test suite: `cd linkshelf && go mod tidy && go test ./...`. The server starts on port 8080 with `go run ./cmd/server`.",
     "min_architecture_bytes": 3000,
     "min_plan_bytes": 750,
