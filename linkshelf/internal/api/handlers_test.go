@@ -30,7 +30,7 @@ func setupTestDB(t *testing.T) *sql.DB {
 func TestListLinks_Empty(t *testing.T) {
 	_ = setupTestDB(t)
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/links", listLinks)
+	mux.HandleFunc("/api/links", ListHandler)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/links", nil)
 	rr := httptest.NewRecorder()

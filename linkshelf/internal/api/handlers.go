@@ -40,8 +40,8 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, fpath)
 }
 
-// listLinks handles GET /api/links and returns the list of stored links as JSON.
-func listLinks(w http.ResponseWriter, r *http.Request) {
+// ListHandler handles GET /api/links and returns the list of stored links as JSON.
+func ListHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
