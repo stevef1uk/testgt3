@@ -33,11 +33,25 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fpath := filepath.Join("web", trimmed)
-	if _, err := os.Stat(fpath); err != nil {
+	data, err := os.ReadFile(fpath)
+	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
-	http.ServeFile(w, r, fpath)
+	// Determine content type from extension
+	ext := filepath.Ext(trimmed)
+	switch ext {
+	case ".css":
+		w.Header().Set("Content-Type", "text/css")
+	case ".js":
+		w.Header().Set("Content-Type", "application/javascript")
+	case ".html":
+		w.Header().Set("Content-Type", "text/html")
+	default:
+		w.Header().Set("Content-Type", "application/octet-stream")
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
 }
 
 // ListHandler handles GET /api/links and returns the list of stored links as JSON.
