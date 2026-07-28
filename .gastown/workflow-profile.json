@@ -80,7 +80,7 @@
         "qa_verify_command": "cd linkshelf && go build ./... && go test ./..."
       }
     ],
-    "active_phase_id": "go-module",
+    "active_phase_id": "store-layer",
     "spec_summary": "The Linkshelf MVP is a tiny bookmark management service written in Go. It provides a simple HTTP API to list, create, and delete links, backed by a SQLite database. The project layout is confined to the 'linkshelf' directory and includes a Go module, a command server entry point, internal packages for the data schema and store logic, API handler definitions, and static web assets (HTML, JavaScript, CSS). The data model consists of a Link struct with ID, Title, URL, and CreatedAt fields, and a schema initializer that creates the links table if it does not exist. Store functions are package‑level, using a global DB variable, and enforce validation on title length and URL scheme. Handlers are registered on the default ServeMux and expose endpoints for serving the UI, static files, and a JSON REST API. The server runs on port 8080, serving the UI from the web directory. The build system must ensure that `cd linkshelf && go test ./...` passes (compiling all packages even without test files) and that `cd linkshelf && go run ./cmd/server` launches a functional UI where links can be added and removed. No additional test files are required for the MVP, but optional in‑memory tests can be added. The pipeline verifies the full test suite and the ability to start the server.",
     "min_architecture_bytes": 2500,
     "min_plan_bytes": 625,
