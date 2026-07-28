@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-07-28T06:03:57Z",
+  "generated_at": "2026-07-28T06:08:05Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
@@ -13,80 +13,75 @@
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
-      "linkshelf/internal/store/store_test.go",
       "linkshelf/internal/api/handlers.go",
-      "linkshelf/internal/api/handlers_test.go",
       "linkshelf/cmd/server/main.go",
       "linkshelf/package.json",
       "linkshelf/tsconfig.json",
-      "linkshelf/web/style.css",
+      "linkshelf/web/index.html",
       "linkshelf/web/app.js",
-      "linkshelf/web/index.html"
+      "linkshelf/web/style.css"
     ],
     "delivery_phases": [
       {
-        "id": "go-module",
-        "title": "Go module",
+        "id": "data-model-and-store",
+        "title": "Data model and SQLite store",
         "required_files": [
-          "linkshelf/go.mod"
-        ],
-        "qa_verify_command": "cd linkshelf && go mod download"
-      },
-      {
-        "id": "store-layer",
-        "title": "Store layer",
-        "required_files": [
+          "linkshelf/go.mod",
           "linkshelf/internal/store/schema.go",
-          "linkshelf/internal/store/store.go",
-          "linkshelf/internal/store/store_test.go"
+          "linkshelf/internal/store/store.go"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./internal/store/..."
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "spec_focus": "SQLite schema and package-level CRUD functions"
       },
       {
-        "id": "api-handlers",
-        "title": "HTTP handlers",
+        "id": "http-handlers",
+        "title": "HTTP handlers and routing",
         "required_files": [
-          "linkshelf/internal/api/handlers.go",
-          "linkshelf/internal/api/handlers_test.go"
+          "linkshelf/internal/api/handlers.go"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./internal/api/..."
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "depends_on": [
+          "data-model-and-store"
+        ],
+        "spec_focus": "Register handlers on DefaultServeMux; GET, POST, DELETE endpoints"
       },
       {
-        "id": "server-main",
-        "title": "Server entrypoint",
+        "id": "main-entrypoint",
+        "title": "Server entrypoint and wiring",
         "required_files": [
           "linkshelf/cmd/server/main.go"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./cmd/server/..."
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "depends_on": [
+          "data-model-and-store",
+          "http-handlers"
+        ],
+        "spec_focus": "Open SQLite DB, init schema, assign store.DB, listen on :8080"
       },
       {
-        "id": "web-static",
-        "title": "Web static assets",
+        "id": "frontend-ui",
+        "title": "Frontend static assets",
         "required_files": [
           "linkshelf/package.json",
           "linkshelf/tsconfig.json",
-          "linkshelf/web/style.css",
+          "linkshelf/web/index.html",
           "linkshelf/web/app.js",
-          "linkshelf/web/index.html"
+          "linkshelf/web/style.css"
         ],
-        "qa_verify_command": "cd linkshelf && npm install && npx tsc --noEmit"
-      },
-      {
-        "id": "web-shell",
-        "title": "Web HTML shell",
-        "required_files": [
-          "linkshelf/web/index.html"
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "depends_on": [
+          "main-entrypoint"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./... && go test ./..."
+        "spec_focus": "HTML/JS/CSS to list, add, delete links via the API"
       }
     ],
-    "active_phase_id": "store-layer",
-    "spec_summary": "The Linkshelf MVP is a tiny bookmark management service written in Go. It provides a simple HTTP API to list, create, and delete links, backed by a SQLite database. The project layout is confined to the 'linkshelf' directory and includes a Go module, a command server entry point, internal packages for the data schema and store logic, API handler definitions, and static web assets (HTML, JavaScript, CSS). The data model consists of a Link struct with ID, Title, URL, and CreatedAt fields, and a schema initializer that creates the links table if it does not exist. Store functions are package‑level, using a global DB variable, and enforce validation on title length and URL scheme. Handlers are registered on the default ServeMux and expose endpoints for serving the UI, static files, and a JSON REST API. The server runs on port 8080, serving the UI from the web directory. The build system must ensure that `cd linkshelf && go test ./...` passes (compiling all packages even without test files) and that `cd linkshelf && go run ./cmd/server` launches a functional UI where links can be added and removed. No additional test files are required for the MVP, but optional in‑memory tests can be added. The pipeline verifies the full test suite and the ability to start the server.",
-    "min_architecture_bytes": 2500,
-    "min_plan_bytes": 625,
+    "active_phase_id": "data-model-and-store",
+    "spec_summary": "Link Shelf is a tiny bookmark MVP in Go using SQLite (mattn/go-sqlite3). It supports listing, creating, and deleting links via a simple JSON REST API and serves a vanilla JS/HTML frontend on :8080. Project layout: go.mod at root; internal/store schema.go defines Link struct and DDL; internal/store store.go provides package-level List/Create/Delete functions; internal/api handlers.go registers routes on http.DefaultServeMux; cmd/server/main.go initializes the DB, schema, starts the server; web/ contains index.html, app.js, style.css. The success criteria are `cd linkshelf && go test ./...` passing (even with no explicit tests, all packages must compile) and serving the UI at :8080 to create/delete links.",
+    "min_architecture_bytes": 3200,
+    "min_plan_bytes": 800,
     "min_implementation_file_bytes": 400,
     "min_substantive_lines": 3,
-    "python_venv_dir": ".venv",
+    "python_venv_dir": "off",
     "dev_server_port": 8080
   }
 }
