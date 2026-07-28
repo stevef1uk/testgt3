@@ -75,7 +75,7 @@
         "spec_focus": "HTML/JS/CSS to list, add, delete links via the API"
       }
     ],
-    "active_phase_id": "data-model-and-store",
+    "active_phase_id": "http-handlers",
     "spec_summary": "Link Shelf is a tiny bookmark MVP in Go using SQLite (mattn/go-sqlite3). It supports listing, creating, and deleting links via a simple JSON REST API and serves a vanilla JS/HTML frontend on :8080. Project layout: go.mod at root; internal/store schema.go defines Link struct and DDL; internal/store store.go provides package-level List/Create/Delete functions; internal/api handlers.go registers routes on http.DefaultServeMux; cmd/server/main.go initializes the DB, schema, starts the server; web/ contains index.html, app.js, style.css. The success criteria are `cd linkshelf && go test ./...` passing (even with no explicit tests, all packages must compile) and serving the UI at :8080 to create/delete links.",
     "min_architecture_bytes": 3200,
     "min_plan_bytes": 800,
