@@ -1,114 +1,59 @@
-# Link Shelf – MVP spec (pipeline-friendly)
 
-## Goal
+# Link Shelf - Bookmark Manager
 
-A tiny bookmark app: **list**, **create**, and **delete** links. Success for the automated pipeline means:
+## Project Overview
 
-```bash
-cd linkshelf && go mod tidy && go test ./...
-```
+Link Shelf is a simple bookmark manager built with Go and SQLite. It provides a REST API for managing links and a static web frontend.
 
-passes, and `cd linkshelf && go run ./cmd/server` serves the UI on `:8080`.
+## Architecture
 
-Keep implementations small and literal. Prefer the exact names and shapes below over extra abstractions.
+- **Go Module**: `linkshelf` (Go 1.22)
+- **Server Entry**: `cmd/server/main.go`
+- **Store Package**: `internal/store` - Link struct, schema, CRUD
+- **API Package**: `internal/api` - HTTP handlers
+- **Web Frontend**: `web/index.html`, `web/app.js`, `web/style.css`
+- **Database**: SQLite (`linkshelf.db`)
 
-## Layout (implement beads only)
+## API Endpoints
 
-```
-linkshelf/
-├── go.mod
-├── cmd/server/main.go
-├── internal/store/schema.go    # Link + InitSchema + DDL only
-├── internal/store/store.go     # List / Create / Delete (package-level)
-├── internal/api/handlers.go    # HTTP handlers
-└── web/
-    ├── index.html
-    ├── app.js
-    └── style.css
-```
+- `GET /api/links` - List all links
+- `POST /api/links` - Create link (title required, URL must be http/https)
+- `DELETE /api/links/{id}` - Delete link
 
-**Do not** add `store_test.go` or `handlers_test.go` unless you want extras — they are **not** required for this MVP.
+## Web UI
 
-## Module
+- Served at `/` (static files from `web/`)
+- List links, add new, delete
+- Refreshes after each operation
 
-```
-module linkshelf
+## Acceptance Criteria
 
-go 1.22
+1. `cd linkshelf && go test ./...` passes
+2. Server starts on :8080 and serves UI
+3. API endpoints work correctly
 
-require github.com/mattn/go-sqlite3 v1.14.22
-```
+## Tech Stack
 
-(`go mod tidy` may adjust the sqlite driver version.)
+- Go 1.22 with sqlite3 driver
+- Static web (HTML/JS/CSS) - no build step
+- SQLite database (file-based)
 
-## Data model
+## Testing Requirements
 
-`Link` and table DDL live in **`schema.go`** only:
+- Unit tests for store package
+- API integration tests
+- Playwright E2E tests for web UI:
+  - Page loads at http://localhost:8080
+  - Can add a link via UI
+  - Can delete a link via UI
+  - List updates correctly
 
-```go
-type Link struct {
-    ID        int64  `json:"id"`
-    Title     string `json:"title"`
-    URL       string `json:"url"`
-    CreatedAt string `json:"created_at"` // RFC3339 UTC
-}
+## Delivery Phases
 
-func InitSchema(db *sql.DB) error // runs CREATE TABLE IF NOT EXISTS links (...)
-```
-
-`store.go` must **not** contain `CREATE TABLE` — call `InitSchema` from `main` and from any tests.
-
-## Store API (`internal/store/store.go`)
-
-Use **package-level** functions and a package variable — **not** a `Store` struct or `NewStore`:
-
-```go
-var DB *sql.DB
-
-func List(ctx context.Context) ([]Link, error)       // ORDER BY id DESC; empty slice not nil
-func Create(ctx context.Context, title, url string) (Link, error)
-func Delete(ctx context.Context, id int64) error     // error if id missing
-```
-
-`Create` validation:
-
-- Title: non-empty, max 200 runes
-- URL: non-empty, must start with `http://` or `https://`
-
-## HTTP API (`internal/api/handlers.go`)
-
-Register on `http.DefaultServeMux` from `main`. Use `store.List` / `store.Create` / `store.Delete` only.
-
-| Method | Path | Success | Error |
-|--------|------|---------|-------|
-| GET | `/` | 200, `linkshelf/web/index.html` | — |
-| GET | `/static/{file}` | 200, file under `linkshelf/web/` | 404 |
-| GET | `/api/links` | 200, JSON array `[]` when empty | — |
-| POST | `/api/links` | 201, JSON link | 400 `{"error":"..."}` |
-| DELETE | `/api/links/{id}` | 204 | 404 `{"error":"..."}` |
-
-Reject static paths containing `..`.
-
-POST body JSON: `{"title":"...","url":"..."}`.
-
-## `linkshelf/cmd/server/main.go`
-
-1. Open SQLite file `linkshelf.db` in the current working directory.
-2. `InitSchema(db)` then `store.DB = db`.
-3. Register handlers and static routes.
-4. `http.ListenAndServe(":8080", nil)` and log `listening on :8080`.
-
-## Frontend (`linkshelf/web/`)
-
-- **index.html** — title input, URL input, Add button, `<ul id="links"></ul>`.
-- **app.js** — on load, `GET /api/links` and render list; POST to add; DELETE to remove; refresh list after each change.
-- **style.css** — simple readable layout (no framework).
-
-## Optional tests
-
-If you add tests: `:memory:` DB, `InitSchema`, `store.DB = db`, then call `List`/`Create`/`Delete`. Handler tests may use `httptest`.
-
-## Definition of done
-
-1. `cd linkshelf && go test ./...` — green (packages without `*_test.go` still compile).
-2. `cd linkshelf && go run ./cmd/server` — UI loads; add one link, see it, delete it.
+1. **go-module** - Initialize go.mod
+2. **store-layer** - Schema + CRUD
+3. **api-handlers** - HTTP handlers
+4. **server-main** - Server entrypoint
+5. **web-static** - CSS/JS assets
+6. **web-shell** - HTML shell
+7. **integration-test** - Full smoke test + Playwright E2E
