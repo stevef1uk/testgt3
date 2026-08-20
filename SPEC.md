@@ -103,11 +103,12 @@ POST body JSON: `{"title":"...","url":"..."}`.
 - **index.html** — title input, URL input, Add button, `<ul id="links"></ul>`.
 - **app.js** — on load, `GET /api/links` and render list; POST to add; DELETE to remove; refresh list after each change.
 - **style.css** — simple readable layout (no framework).
-- **Playwright e2e tests** — verify UI loads, add/delete links, static file serving using `npx playwright test`.
+- **Playwright e2e tests** — required. Verify UI loads, add/delete links, static file serving using `npx playwright test`. Create Playwright configuration and test files for the frontend.
 
-## Optional tests
+## Testing requirements
 
-If you add tests: `:memory:` DB, `InitSchema`, `store.DB = db`, then call `List`/`Create`/`Delete`. Handler tests may use `httptest`.
+- **Backend tests**: Optional but recommended. Use `:memory:` DB, `InitSchema`, `store.DB = db`, then call `List`/`Create`/`Delete`. Handler tests may use `httptest`.
+- **Frontend e2e tests**: Required. Use Playwright to verify UI functionality.
 
 ## Definition of done
 
