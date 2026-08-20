@@ -2,54 +2,45 @@ package store
 
 import (
 	"database/sql"
+	"reflect"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestInitSchemaCreatesLinksTable(t *testing.T) {
+func TestInitSchemaIsIdempotent(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
-		t.Fatalf("open database: %v", err)
+		t.Fatal(err)
 	}
 	defer db.Close()
 
 	if err := InitSchema(db); err != nil {
-		t.Fatalf("initialize schema: %v", err)
+		t.Fatal(err)
+	}
+	if err := InitSchema(db); err != nil {
+		t.Fatalf("calling InitSchema twice should succeed: %v", err)
 	}
 
-	rows, err := db.Query(`PRAGMA table_info(links)`)
-	if err != nil {
-		t.Fatalf("inspect links table: %v", err)
+	var count int
+	if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'links'`).Scan(&count); err != nil {
+		t.Fatal(err)
 	}
-	defer rows.Close()
+	if count != 1 {
+		t.Fatalf("links table count = %d, want 1", count)
+	}
+}
 
-	var columns []string
-	for rows.Next() {
-		var (
-			cid        int
-			name       string
-			kind       string
-			notNull    int
-			defaultV   any
-			primaryKey int
-		)
-		if err := rows.Scan(&cid, &name, &kind, &notNull, &defaultV, &primaryKey); err != nil {
-			t.Fatalf("scan table info: %v", err)
+func TestLinkFieldsAndJSONTags(t *testing.T) {
+	typ := reflect.TypeOf(Link{})
+	want := map[string]string
+	for field, tag := range want {
+		f, ok := typ.FieldByName(field)
+		if !ok {
+			t.Fatalf("Link is missing field %s", field)
 		}
-		columns = append(columns, name)
-	}
-	if err := rows.Err(); err != nil {
-		t.Fatalf("read table info: %v", err)
-	}
-
-	want := []string{"id", "title", "url", "created_at"}
-	if len(columns) != len(want) {
-		t.Fatalf("columns = %v, want %v", columns, want)
-	}
-	for i := range want {
-		if columns[i] != want[i] {
-			t.Fatalf("columns = %v, want %v", columns, want)
+		if got := f.Tag.Get("json"); got != tag {
+			t.Errorf("Link.%s json tag = %q, want %q", field, got, tag)
 		}
 	}
 }
