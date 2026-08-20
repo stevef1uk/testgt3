@@ -86,9 +86,10 @@
         ]
       }
     ],
-    "active_phase_id": "schema-phase",
+    "active_phase_id": "store-phase",
     "completed_phase_ids": [
-      "module-phase"
+      "module-phase",
+      "schema-phase"
     ],
     "spec_summary": "A minimal bookmark app with list, create, and delete functionality. Uses Go with SQLite for persistence and static frontend assets. The backend implements HTTP handlers for the API and static file serving. The frontend uses vanilla JS to interact with the API. The pipeline verifies via Go unit tests and a running server test through curl integration.",
     "min_architecture_bytes": 3000,
