@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "generated_at": "2026-08-20T07:05:42Z",
+  "generated_at": "2026-08-20T16:23:41Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
     "layout_root": "linkshelf",
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
-    "qa_verify_command": "cd linkshelf && go mod tidy && go test ./...",
-    "test_runner": "go",
+    "qa_verify_command": "cd linkshelf && go test ./...",
+    "test_runner": "custom",
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
@@ -21,60 +21,21 @@
     ],
     "delivery_phases": [
       {
-        "id": "module-phase",
-        "title": "Module phase",
+        "id": "backend-core",
+        "title": "Backend core (schema, store, handlers, main)",
         "required_files": [
-          "linkshelf/go.mod"
-        ],
-        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'"
-      },
-      {
-        "id": "schema-phase",
-        "title": "Schema phase",
-        "required_files": [
-          "linkshelf/internal/store/schema.go"
-        ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
-        "depends_on": [
-          "module-phase"
-        ]
-      },
-      {
-        "id": "store-phase",
-        "title": "Store phase",
-        "required_files": [
-          "linkshelf/internal/store/store.go"
-        ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
-        "depends_on": [
-          "schema-phase"
-        ]
-      },
-      {
-        "id": "api-phase",
-        "title": "API phase",
-        "required_files": [
-          "linkshelf/internal/api/handlers.go"
-        ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
-        "depends_on": [
-          "store-phase"
-        ]
-      },
-      {
-        "id": "entrypoint-phase",
-        "title": "Entrypoint phase",
-        "required_files": [
+          "linkshelf/go.mod",
+          "linkshelf/internal/store/schema.go",
+          "linkshelf/internal/store/store.go",
+          "linkshelf/internal/api/handlers.go",
           "linkshelf/cmd/server/main.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
-        "depends_on": [
-          "api-phase"
-        ]
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "spec_focus": "Data model, store package-level API, HTTP handlers, main entry point."
       },
       {
-        "id": "frontend-phase",
-        "title": "Frontend phase",
+        "id": "frontend-assets",
+        "title": "Frontend assets (HTML, JS, CSS)",
         "required_files": [
           "linkshelf/web/index.html",
           "linkshelf/web/app.js",
@@ -82,20 +43,32 @@
         ],
         "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
         "depends_on": [
-          "entrypoint-phase"
-        ]
+          "backend-core"
+        ],
+        "spec_focus": "Static files served from web/ directory."
+      },
+      {
+        "id": "end-to-end-testing",
+        "title": "End-to-end Playwright tests",
+        "required_files": [
+          "linkshelf/go.mod",
+          "linkshelf/internal/store/schema.go",
+          "linkshelf/internal/store/store.go",
+          "linkshelf/internal/api/handlers.go",
+          "linkshelf/cmd/server/main.go",
+          "linkshelf/web/index.html",
+          "linkshelf/web/app.js",
+          "linkshelf/web/style.css"
+        ],
+        "qa_verify_command": "cd linkshelf && go build -o /dev/null ./cmd/server && npx playwright test",
+        "depends_on": [
+          "frontend-assets"
+        ],
+        "spec_focus": "Verify UI loads, add/delete links, static file serving."
       }
     ],
-    "active_phase_id": "frontend-phase",
-    "completed_phase_ids": [
-      "module-phase",
-      "schema-phase",
-      "store-phase",
-      "api-phase",
-      "entrypoint-phase",
-      "frontend-phase"
-    ],
-    "spec_summary": "A minimal bookmark app with list, create, and delete functionality. Uses Go with SQLite for persistence and static frontend assets. The backend implements HTTP handlers for the API and static file serving. The frontend uses vanilla JS to interact with the API. The pipeline verifies via Go unit tests and a running server test through curl integration.",
+    "active_phase_id": "backend-core",
+    "spec_summary": "Link Shelf is a tiny bookmark app for listing, creating, and deleting links. It uses Go and SQLite, with a simple frontend. The project layout includes go.mod, cmd/server/main.go (entry point), internal/store/schema.go (Link struct and InitSchema DDL), internal/store/store.go (package-level List/Create/Delete functions using a package variable DB), internal/api/handlers.go (HTTP handlers for static files, GET/POST/DELETE on /api/links), and web/ assets. Unit tests are optional but package-level store functions can be tested with :memory: DB. The spec requires that go test ./... passes and the server serves on :8080.",
     "min_architecture_bytes": 3000,
     "min_plan_bytes": 750,
     "min_implementation_file_bytes": 400,
