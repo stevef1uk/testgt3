@@ -103,6 +103,7 @@ POST body JSON: `{"title":"...","url":"..."}`.
 - **index.html** — title input, URL input, Add button, `<ul id="links"></ul>`.
 - **app.js** — on load, `GET /api/links` and render list; POST to add; DELETE to remove; refresh list after each change.
 - **style.css** — simple readable layout (no framework).
+- **Playwright e2e tests** — verify UI loads, add/delete links, static file serving using `npx playwright test`.
 
 ## Optional tests
 
