@@ -86,7 +86,8 @@
         ]
       }
     ],
-    "active_phase_id": "store-phase",
+    "active_phase_id": "schema-phase",
+    "rewound_from_phase_id": "store-phase",
     "completed_phase_ids": [
       "module-phase",
       "schema-phase"
