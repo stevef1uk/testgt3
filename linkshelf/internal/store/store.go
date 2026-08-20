@@ -26,7 +26,7 @@ func List(ctx context.Context) ([]Link, error) {
 	rows, err := DB.QueryContext(ctx, `
 		SELECT id, title, url, created_at
 		FROM links
-		ORDER BY created_at DESC, id DESC
+		ORDER BY id DESC
 	`)
 	if err != nil {
 		return nil, err
