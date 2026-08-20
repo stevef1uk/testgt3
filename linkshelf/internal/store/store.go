@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	neturl "net/url"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -54,7 +55,7 @@ func Create(ctx context.Context, title string, url string) (Link, error) {
 	if utf8.RuneCountInString(title) > 200 {
 		return Link{}, errTitleTooLong
 	}
-	parsedURL, err := urlpkg.Parse(url)
+	parsedURL, err := neturl.Parse(url)
 	if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") || parsedURL.Host == "" {
 		return Link{}, errInvalidURL
 	}

@@ -33,7 +33,12 @@ func TestInitSchemaIsIdempotent(t *testing.T) {
 
 func TestLinkFieldsAndJSONTags(t *testing.T) {
 	typ := reflect.TypeOf(Link{})
-	want := map[string]string
+	want := map[string]string{
+		"ID":        "id",
+		"Title":     "title",
+		"URL":       "url",
+		"CreatedAt": "created_at",
+	}
 	for field, tag := range want {
 		f, ok := typ.FieldByName(field)
 		if !ok {
