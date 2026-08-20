@@ -1,0 +1,9 @@
+{
+  "1:linkshelf/internal/store/schema.go": {
+    "content": "package store\n\nimport \"database/sql\"\n\n// Link is a saved link.\ntype Link struct {\n\tID        int64  `json:\"id\"`\n\tTitle     string `json:\"title\"`\n\tURL       string `json:\"url\"`\n\tCreatedAt string `json:\"created_at\"`\n}\n\n// InitSchema creates the links table when it does not already exist.\nfunc InitSchema(db *sql.DB) error {\n\tconst ddl = `\nCREATE TABLE IF NOT EXISTS links (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    title TEXT NOT NULL,\n    url TEXT NOT NULL,\n    created_at TEXT NOT NULL\n)`\n\t_, err := db.Exec(ddl)\n\treturn err\n}\n",
+    "md5": "042a2e35a498f119446b7cb8747f5537",
+    "validated": true,
+    "validated_at": "2026-08-20T07:23:09Z",
+    "created_at": "2026-08-20T07:23:09Z"
+  }
+}
