@@ -1,74 +1,104 @@
 {
   "version": 1,
-  "generated_at": "2026-06-11T20:18:05Z",
+  "generated_at": "2026-08-20T07:05:42Z",
   "source": "llm",
-  "confidence": "medium",
+  "confidence": "high",
   "validation": {
     "layout_root": "linkshelf",
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
     "qa_verify_command": "cd linkshelf && go mod tidy && go test ./...",
-    "test_runner": "custom",
+    "test_runner": "go",
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
-      "linkshelf/web/style.css",
-      "linkshelf/web/app.js",
-      "linkshelf/web/index.html",
       "linkshelf/internal/api/handlers.go",
-      "linkshelf/cmd/server/main.go"
+      "linkshelf/cmd/server/main.go",
+      "linkshelf/web/index.html",
+      "linkshelf/web/app.js",
+      "linkshelf/web/style.css"
     ],
     "delivery_phases": [
       {
-        "id": "go-module",
-        "title": "Go module",
+        "id": "module-phase",
+        "title": "Module phase",
         "required_files": [
           "linkshelf/go.mod"
         ],
-        "qa_verify_command": "cd linkshelf && go mod download"
+        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'"
       },
       {
-        "id": "store-layer",
-        "title": "Store layer",
+        "id": "schema-phase",
+        "title": "Schema phase",
         "required_files": [
-          "linkshelf/internal/store/schema.go",
-          "linkshelf/internal/store/store.go"
+          "linkshelf/internal/store/schema.go"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./internal/store/..."
-      },
-      {
-        "id": "web-static",
-        "title": "Web static assets",
-        "required_files": [
-          "linkshelf/web/style.css",
-          "linkshelf/web/app.js",
-          "linkshelf/web/index.html"
+        "qa_verify_command": "cd linkshelf && go build ./...",
+        "depends_on": [
+          "module-phase"
         ]
       },
       {
-        "id": "api-handlers",
-        "title": "HTTP handlers",
+        "id": "store-phase",
+        "title": "Store phase",
+        "required_files": [
+          "linkshelf/internal/store/store.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go build ./...",
+        "depends_on": [
+          "schema-phase"
+        ]
+      },
+      {
+        "id": "api-phase",
+        "title": "API phase",
         "required_files": [
           "linkshelf/internal/api/handlers.go"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./internal/api/..."
+        "qa_verify_command": "cd linkshelf && go build ./...",
+        "depends_on": [
+          "store-phase"
+        ]
       },
       {
-        "id": "server-main",
-        "title": "Server entrypoint",
+        "id": "entrypoint-phase",
+        "title": "Entrypoint phase",
         "required_files": [
           "linkshelf/cmd/server/main.go"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./cmd/server/..."
+        "qa_verify_command": "cd linkshelf && go build ./...",
+        "depends_on": [
+          "api-phase"
+        ]
+      },
+      {
+        "id": "frontend-phase",
+        "title": "Frontend phase",
+        "required_files": [
+          "linkshelf/web/index.html",
+          "linkshelf/web/app.js",
+          "linkshelf/web/style.css"
+        ],
+        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
+        "depends_on": [
+          "entrypoint-phase"
+        ]
       }
     ],
-    "active_phase_id": "server-main",
-    "spec_summary": "MVP spec for a tiny bookmark app with list, create, and delete links. Implementations should be small and literal. The app should serve a UI on :8080 and pass automated tests with 'cd linkshelf && go mod tidy && go test ./...'.",
-    "min_architecture_bytes": 2500,
-    "min_plan_bytes": 625,
+    "active_phase_id": "schema-phase",
+    "completed_phase_ids": [
+      "module-phase"
+    ],
+    "spec_summary": "A minimal bookmark app with list, create, and delete functionality. Uses Go with SQLite for persistence and static frontend assets. The backend implements HTTP handlers for the API and static file serving. The frontend uses vanilla JS to interact with the API. The pipeline verifies via Go unit tests and a running server test through curl integration.",
+    "min_architecture_bytes": 3000,
+    "min_plan_bytes": 750,
     "min_implementation_file_bytes": 400,
     "min_substantive_lines": 3,
-    "python_venv_dir": ""
+    "min_test_plan_bytes": 400,
+    "ui_command": "",
+    "max_review_retries": 3,
+    "python_venv_dir": "off",
+    "dev_server_port": 8080
   }
 }

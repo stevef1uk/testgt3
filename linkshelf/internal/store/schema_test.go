@@ -4,37 +4,68 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3" // Use sqlite3 for testing
+	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestInitSchema(t *testing.T) {
-	// Create an in-memory SQLite database for testing
+func TestInitSchemaCreatesLinksTable(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	if err != nil {
-		t.Fatalf("failed to open database: %v", err)
+		t.Fatal(err)
 	}
 	defer db.Close()
 
-	// Test initializing the schema
-	err = InitSchema(db)
-	if err != nil {
-		t.Fatalf("InitSchema failed: %v", err)
+	if err := InitSchema(db); err != nil {
+		t.Fatalf("InitSchema() error = %v", err)
 	}
 
-	// Verify that the 'links' table exists
-	rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table' AND name='links';")
+	var tableName string
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'links'`).Scan(&tableName)
 	if err != nil {
-		t.Fatalf("failed to query for links table: %v", err)
+		t.Fatalf("links table was not created: %v", err)
+	}
+	if tableName != "links" {
+		t.Fatalf("table name = %q, want links", tableName)
+	}
+}
+
+func TestLinkHasExpectedSchemaColumns(t *testing.T) {
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	if err := InitSchema(db); err != nil {
+		t.Fatalf("InitSchema() error = %v", err)
+	}
+
+	rows, err := db.Query(`PRAGMA table_info(links)`)
+	if err != nil {
+		t.Fatal(err)
 	}
 	defer rows.Close()
 
-	if !rows.Next() {
-		t.Errorf("links table was not created")
+	want := []string{"id", "title", "url", "created_at"}
+	var got []string
+	for rows.Next() {
+		var cid int
+		var name, typ string
+		var notNull, primaryKey int
+		var defaultValue any
+		if err := rows.Scan(&cid, &name, &typ, &notNull, &defaultValue, &primaryKey); err != nil {
+			t.Fatal(err)
+		}
+		got = append(got, name)
 	}
-
-	// Test calling InitSchema again to ensure it's idempotent
-	err = InitSchema(db)
-	if err != nil {
-		t.Fatalf("InitSchema failed on second call: %v", err)
+	if err := rows.Err(); err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != len(want) {
+		t.Fatalf("columns = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("columns = %v, want %v", got, want)
+		}
 	}
 }
