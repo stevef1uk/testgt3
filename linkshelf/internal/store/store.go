@@ -6,12 +6,15 @@ import (
 	"errors"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // DB is the database used by the package-level persistence API.
 var DB *sql.DB
 
 var errInvalidLink = errors.New("title and url are required")
+var errTitleTooLong = errors.New("title must be 200 characters or fewer")
+var errInvalidURL = errors.New("url must use http or https")
 
 // List returns saved links in newest-first order.
 func List(ctx context.Context) ([]Link, error) {
@@ -47,6 +50,13 @@ func List(ctx context.Context) ([]Link, error) {
 func Create(ctx context.Context, title string, url string) (Link, error) {
 	if strings.TrimSpace(title) == "" || strings.TrimSpace(url) == "" {
 		return Link{}, errInvalidLink
+	}
+	if utf8.RuneCountInString(title) > 200 {
+		return Link{}, errTitleTooLong
+	}
+	parsedURL, err := urlpkg.Parse(url)
+	if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") || parsedURL.Host == "" {
+		return Link{}, errInvalidURL
 	}
 	if DB == nil {
 		return Link{}, errors.New("store database is not initialized")
