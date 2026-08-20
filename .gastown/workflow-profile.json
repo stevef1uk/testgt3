@@ -66,7 +66,8 @@
         ]
       }
     ],
-    "active_phase_id": "http-bead",
+    "active_phase_id": "module-and-persistence-bead",
+    "rewound_from_phase_id": "http-bead",
     "completed_phase_ids": [
       "module-and-persistence-bead"
     ],
