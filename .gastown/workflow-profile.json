@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2026-08-20T16:23:41Z",
+  "generated_at": "2026-08-20T19:41:20Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
@@ -8,7 +8,7 @@
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
     "qa_verify_command": "cd linkshelf && go test ./...",
-    "test_runner": "go",
+    "test_runner": "custom",
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
@@ -21,65 +21,70 @@
     ],
     "delivery_phases": [
       {
-        "id": "module-and-persistence-bead",
-        "title": "Module and persistence bead",
+        "id": "backend-core",
+        "title": "Backend core – Store and API",
         "required_files": [
           "linkshelf/go.mod",
           "linkshelf/internal/store/schema.go",
-          "linkshelf/internal/store/store.go"
-        ],
-        "qa_verify_command": "cd linkshelf && go build ./..."
-      },
-      {
-        "id": "http-bead",
-        "title": "HTTP bead",
-        "required_files": [
+          "linkshelf/internal/store/store.go",
           "linkshelf/internal/api/handlers.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
-        "depends_on": [
-          "module-and-persistence-bead"
-        ]
+        "qa_verify_command": "cd linkshelf && go test ./internal/...",
+        "spec_focus": "Implement store package, schema, and HTTP handlers. Tests are optional; command verifies compilation."
       },
       {
-        "id": "entrypoint-bead",
-        "title": "Entrypoint bead",
+        "id": "server-and-main",
+        "title": "Main server entry point",
         "required_files": [
           "linkshelf/cmd/server/main.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
+        "qa_verify_command": "cd linkshelf && go build ./cmd/server",
         "depends_on": [
-          "http-bead"
-        ]
+          "backend-core"
+        ],
+        "spec_focus": "Implement main.go wiring store, InitSchema, registering handlers, and serving on :8080."
       },
       {
-        "id": "ui-bead",
-        "title": "UI bead",
+        "id": "frontend",
+        "title": "Frontend static files",
         "required_files": [
           "linkshelf/web/index.html",
           "linkshelf/web/app.js",
           "linkshelf/web/style.css"
         ],
         "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
+        "spec_focus": "Create static HTML, JavaScript, and CSS for the link shelf UI."
+      },
+      {
+        "id": "smoke-test",
+        "title": "Integration smoke test",
+        "required_files": [
+          "linkshelf/cmd/server/main.go",
+          "linkshelf/web/index.html",
+          "linkshelf/web/app.js",
+          "linkshelf/web/style.css"
+        ],
+        "qa_verify_command": "cd linkshelf && go build ./...",
         "depends_on": [
-          "entrypoint-bead"
-        ]
+          "server-and-main",
+          "frontend"
+        ],
+        "spec_focus": "Verify server starts and serves the UI on port 8080."
       }
     ],
-    "active_phase_id": "module-and-persistence-bead",
-    "rewound_from_phase_id": "http-bead",
+    "active_phase_id": "backend-core",
     "completed_phase_ids": [
       "module-and-persistence-bead"
     ],
-    "spec_summary": "Link Shelf is a tiny bookmark app for listing, creating, and deleting links. It uses Go and SQLite, with a simple frontend. The project layout includes go.mod, cmd/server/main.go (entry point), internal/store/schema.go (Link struct and InitSchema DDL), internal/store/store.go (package-level List/Create/Delete functions using a package variable DB), internal/api/handlers.go (HTTP handlers for static files, GET/POST/DELETE on /api/links), and web/ assets. Unit tests are optional but package-level store functions can be tested with :memory: DB. The spec requires that go test ./... passes and the server serves on :8080.",
-    "min_architecture_bytes": 3000,
-    "min_plan_bytes": 750,
+    "spec_summary": "Build a tiny bookmark app (Link Shelf) with a Go backend using SQLite and a static frontend. Layout: linkshelf/go.mod, cmd/server/main.go, internal/store/schema.go, internal/store/store.go, internal/api/handlers.go, web/index.html, web/app.js, web/style.css. Backend provides REST API: GET /api/links (list), POST /api/links (create with validation: title non-empty, max 200 chars; URL must start with http:// or https://), DELETE /api/links/{id} (removes link, 404 if missing). Serve index.html at / and static files from web/ at /static/ (reject paths with '..'). Store uses package-level functions and variable DB. InitSchema runs CREATE TABLE IF NOT EXISTS. Main opens linkshelf.db, calls InitSchema, sets store.DB, registers handlers, listens on :8080. Frontend: index.html with inputs, Add button, list; app.js fetches, adds, deletes, re-renders; style.css provides simple layout. Run tests with 'cd linkshelf && go test ./...'; run server with 'cd linkshelf && go run ./cmd/server'.",
+    "min_architecture_bytes": 2500,
+    "min_plan_bytes": 625,
     "min_implementation_file_bytes": 400,
     "min_substantive_lines": 3,
     "min_test_plan_bytes": 400,
     "ui_command": "",
     "max_review_retries": 3,
-    "python_venv_dir": "off",
+    "python_venv_dir": ".venv",
     "dev_server_port": 8080
   }
 }
