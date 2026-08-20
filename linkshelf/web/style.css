@@ -1,0 +1,34 @@
+:root 
+
+* 
+
+body 
+
+main,
+.container 
+
+h1 
+
+form 
+
+label 
+
+input[type="url"],
+input[type="text"] 
+
+button 
+
+button:hover 
+
+ul,
+ol 
+
+li 
+
+li a 
+
+li button 
+
+li button:hover 
+
+@media (max-width: 520px) 

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Link Shelf</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Link Shelf</h1>
+    <form id="link-form">
+      <label for="url">URL</label>
+      <input id="url" name="url" type="url" placeholder="https://example.com" required>
+      <button type="submit">Add link</button>
+    </form>
+    <ul id="links" aria-live="polite"></ul>
+  </main>
+  <script src="/static/app.js"></script>
+</body>
+</html>
