@@ -112,3 +112,4 @@ If you add tests: `:memory:` DB, `InitSchema`, `store.DB = db`, then call `List`
 
 1. `cd linkshelf && go test ./...` — green (packages without `*_test.go` still compile).
 2. `cd linkshelf && go run ./cmd/server` — UI loads; add one link, see it, delete it.
+3. `npx playwright test` — UI e2e tests pass (verify UI loads, add/delete links, static file serving).
