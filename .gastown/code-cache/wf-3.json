@@ -26,5 +26,12 @@
     "validated": true,
     "validated_at": "2026-08-20T07:49:01Z",
     "created_at": "2026-08-20T07:49:01Z"
+  },
+  "4:linkshelf/cmd/server/main.go": {
+    "content": "package main\n\nimport (\n\t\"database/sql\"\n\t\"log\"\n\t\"net/http\"\n\n\t\"linkshelf/internal/api\"\n\t\"linkshelf/internal/store\"\n\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n\nfunc registerAPI(mux *http.ServeMux) {\n\tapi.Register(mux)\n}\n\nfunc main() {\n\tdb, err := sql.Open(\"sqlite3\", \"linkshelf.db\")\n\tif err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tdefer db.Close()\n\n\tif err := store.InitSchema(db); err != nil {\n\t\tlog.Fatal(err)\n\t}\n\tstore.DB = db\n\n\tmux := http.NewServeMux()\n\tregisterAPI(mux)\n\thttp.HandleFunc(\"/\", mux.ServeHTTP)\n\n\tlog.Println(\"listening on :8080\")\n\tlog.Fatal(http.ListenAndServe(\":8080\", nil))\n}\n",
+    "md5": "817e1847085f1ea129bc812eb749f02f",
+    "validated": true,
+    "validated_at": "2026-08-20T07:57:07Z",
+    "created_at": "2026-08-20T07:57:07Z"
   }
 }
