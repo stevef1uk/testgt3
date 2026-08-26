@@ -73,9 +73,6 @@
       }
     ],
     "active_phase_id": "backend-core",
-    "completed_phase_ids": [
-      "module-and-persistence-bead"
-    ],
     "spec_summary": "Build a tiny bookmark app (Link Shelf) with a Go backend using SQLite and a static frontend. Layout: linkshelf/go.mod, cmd/server/main.go, internal/store/schema.go, internal/store/store.go, internal/api/handlers.go, web/index.html, web/app.js, web/style.css. Backend provides REST API: GET /api/links (list), POST /api/links (create with validation: title non-empty, max 200 chars; URL must start with http:// or https://), DELETE /api/links/{id} (removes link, 404 if missing). Serve index.html at / and static files from web/ at /static/ (reject paths with '..'). Store uses package-level functions and variable DB. InitSchema runs CREATE TABLE IF NOT EXISTS. Main opens linkshelf.db, calls InitSchema, sets store.DB, registers handlers, listens on :8080. Frontend: index.html with inputs, Add button, list; app.js fetches, adds, deletes, re-renders; style.css provides simple layout. Run tests with 'cd linkshelf && go test ./...'; run server with 'cd linkshelf && go run ./cmd/server'.",
     "min_architecture_bytes": 2500,
     "min_plan_bytes": 625,
@@ -86,5 +83,6 @@
     "max_review_retries": 3,
     "python_venv_dir": ".venv",
     "dev_server_port": 8080
-  }
+  },
+  "test_plan_reviewed": false
 }

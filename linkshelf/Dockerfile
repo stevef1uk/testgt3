@@ -1,20 +1,18 @@
-# Dockerfile for Go web server
-# Template variables: http://localhost:8080, 8080
-# Multi-stage build: golang:1.22-alpine builder -> alpine:3.20 runtime
-# The web app runs on HOST (not in Docker). Playwright container reaches it via host.docker.internal.
+# Multi-stage Dockerfile for Playwright E2E testing in docker-compose.
+# The "playwright" target installs npm deps + browsers so compose can
+# build the test-runner image from the rig's layout root.
+# Template variables: v1.62.1-jammy
+#
+# Source files (package.json, playwright.config.ts, e2e/) are NOT copied here.
+# They are mounted via docker-compose volumes at runtime, so changes to test
+# files don't require rebuilding the image. Only package.json is copied during
+# build to cache npm install — the rest comes from the volume mount.
 
-# Stage 1: Builder
-FROM golang:1.22-alpine AS builder
-WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-COPY cmd/server/main.go ./cmd/server/
-RUN CGO_ENABLED=0 go build -o /server ./cmd/server
+FROM mcr.microsoft.com/playwright:v1.62.1-jammy AS playwright
 
-# Stage 2: Runtime
-FROM alpine:3.20
 WORKDIR /app
-COPY --from=builder /server /usr/local/bin/server
-COPY web ./web
-EXPOSE 8080
-CMD ["server", "-addr", ":8080"]
+
+# Copy package manifest and install dependencies (cached layer)
+# Source files will be mounted via docker-compose volumes at runtime.
+COPY package.json package-lock.json* ./
+RUN npm install
