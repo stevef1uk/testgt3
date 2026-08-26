@@ -1,21 +1,19 @@
 {
   "version": 1,
-  "generated_at": "2026-08-20T19:41:20Z",
+  "generated_at": "2026-08-26T14:34:18Z",
   "source": "llm",
   "confidence": "high",
   "validation": {
     "layout_root": "linkshelf",
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
-    "qa_verify_command": "cd linkshelf && go test ./...",
-    "test_runner": "go",
+    "qa_verify_command": "cd linkshelf && go test./...",
+    "test_runner": "custom",
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
       "linkshelf/internal/api/handlers.go",
-      "linkshelf/playwright.config.js",
-      "linkshelf/tests/e2e/link-shelf.spec.js",
       "linkshelf/cmd/server/main.go",
       "linkshelf/web/index.html",
       "linkshelf/web/app.js",
@@ -23,69 +21,84 @@
     ],
     "delivery_phases": [
       {
-        "id": "backend-core",
-        "title": "Backend core – Store and API",
+        "id": "backend-db-schema",
+        "title": "DB schema",
         "required_files": [
           "linkshelf/go.mod",
-          "linkshelf/internal/store/schema.go",
-          "linkshelf/internal/store/store.go",
-          "linkshelf/internal/api/handlers.go",
-          "linkshelf/playwright.config.js",
-          "linkshelf/tests/e2e/link-shelf.spec.js"
+          "linkshelf/internal/store/schema.go"
         ],
-        "qa_verify_command": "cd linkshelf && npm install --ignore-scripts && npx playwright test --list",
-        "spec_focus": "Implement store package, schema, and HTTP handlers. Tests are optional; command verifies compilation."
+        "qa_verify_command": "cd linkshelf && sqlite3 linkshelf.db '.tables' | grep -q links && sqlite3 linkshelf.db '.schema links' | grep -q 'CREATE TABLE links'",
+        "spec_focus": "Data model"
       },
       {
-        "id": "server-and-main",
-        "title": "Main server entry point",
+        "id": "backend-store",
+        "title": "Store API",
+        "required_files": [
+          "linkshelf/internal/store/store.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test./internal/store -v",
+        "depends_on": [
+          "backend-db-schema"
+        ],
+        "spec_focus": "Store API"
+      },
+      {
+        "id": "backend-handlers",
+        "title": "HTTP handlers",
+        "required_files": [
+          "linkshelf/internal/api/handlers.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test./internal/api -v",
+        "depends_on": [
+          "backend-store"
+        ],
+        "spec_focus": "HTTP API"
+      },
+      {
+        "id": "backend-server",
+        "title": "Server",
         "required_files": [
           "linkshelf/cmd/server/main.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./cmd/server",
+        "qa_verify_command": "(cd linkshelf && go run./cmd/server & sleep 2); (cd linkshelf && curl -s http://localhost:8080/api/links | grep -q '[]'); (cd linkshelf && curl -s -X POST http://localhost:8080/api/links -d '{\"title\":\"test\",\"url\":\"https://example.com\"}') | grep -q 'test'; (cd linkshelf && curl -s -X DELETE http://localhost:8080/api/links/1); (ps aux | grep '[l]inkshelf' | awk '{print $2}' | xargs kill)",
         "depends_on": [
-          "backend-core"
+          "backend-handlers"
         ],
-        "spec_focus": "Implement main.go wiring store, InitSchema, registering handlers, and serving on :8080."
+        "spec_focus": "Server"
       },
       {
-        "id": "frontend",
-        "title": "Frontend static files",
+        "id": "frontend-ui",
+        "title": "Frontend",
         "required_files": [
           "linkshelf/web/index.html",
           "linkshelf/web/app.js",
           "linkshelf/web/style.css"
         ],
-        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
-        "spec_focus": "Create static HTML, JavaScript, and CSS for the link shelf UI."
+        "qa_verify_command": "cd linkshelf/web && npm install --ignore-scripts && npx tsc --noEmit",
+        "spec_focus": "Frontend"
       },
       {
-        "id": "smoke-test",
-        "title": "Integration smoke test",
-        "required_files": [
-          "linkshelf/cmd/server/main.go",
-          "linkshelf/web/index.html",
-          "linkshelf/web/app.js",
-          "linkshelf/web/style.css"
-        ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
+        "id": "e2e-and-deployment",
+        "title": "E2E and deployment",
+        "required_files": [],
+        "qa_verify_command": "(cd linkshelf && docker build -t linkshelf. && docker run -d --name linkshelf-app -p 8080:8080 linkshelf & sleep 2); (cd linkshelf && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright test --config=web/playwright.config.js); (docker kill linkshelf-app && docker rm linkshelf-app)",
         "depends_on": [
-          "server-and-main",
-          "frontend"
+          "backend-server",
+          "frontend-ui"
         ],
-        "spec_focus": "Verify server starts and serves the UI on port 8080."
+        "spec_focus": "Testing requirements"
       }
     ],
-    "active_phase_id": "backend-core",
-    "spec_summary": "Build a tiny bookmark app (Link Shelf) with a Go backend using SQLite and a static frontend. Layout: linkshelf/go.mod, cmd/server/main.go, internal/store/schema.go, internal/store/store.go, internal/api/handlers.go, web/index.html, web/app.js, web/style.css. Backend provides REST API: GET /api/links (list), POST /api/links (create with validation: title non-empty, max 200 chars; URL must start with http:// or https://), DELETE /api/links/{id} (removes link, 404 if missing). Serve index.html at / and static files from web/ at /static/ (reject paths with '..'). Store uses package-level functions and variable DB. InitSchema runs CREATE TABLE IF NOT EXISTS. Main opens linkshelf.db, calls InitSchema, sets store.DB, registers handlers, listens on :8080. Frontend: index.html with inputs, Add button, list; app.js fetches, adds, deletes, re-renders; style.css provides simple layout. Run tests with 'cd linkshelf && go test ./...'; run server with 'cd linkshelf && go run ./cmd/server'.",
-    "min_architecture_bytes": 2500,
-    "min_plan_bytes": 625,
+    "active_phase_id": "backend-db-schema",
+    "spec_summary": "A minimal Go bookmarking app with SQLite persistence and a vanilla JS frontend. The backend serves the UI, static files, and a JSON API for link CRUD operations. The frontend loads and renders links from the API. E2E tests verify UI functionality using Playwright.",
+    "min_architecture_bytes": 3000,
+    "min_plan_bytes": 750,
     "min_implementation_file_bytes": 400,
     "min_substantive_lines": 3,
     "min_test_plan_bytes": 400,
     "ui_command": "",
     "max_review_retries": 3,
-    "python_venv_dir": ".venv",
+    "python_venv_dir": "off",
     "dev_server_port": 8080
   },
   "test_plan_reviewed": false
