@@ -8,12 +8,14 @@
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
     "qa_verify_command": "cd linkshelf && go test ./...",
-    "test_runner": "custom",
+    "test_runner": "go",
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
       "linkshelf/internal/api/handlers.go",
+      "linkshelf/playwright.config.js",
+      "linkshelf/tests/e2e/link-shelf.spec.js",
       "linkshelf/cmd/server/main.go",
       "linkshelf/web/index.html",
       "linkshelf/web/app.js",
@@ -27,9 +29,11 @@
           "linkshelf/go.mod",
           "linkshelf/internal/store/schema.go",
           "linkshelf/internal/store/store.go",
-          "linkshelf/internal/api/handlers.go"
+          "linkshelf/internal/api/handlers.go",
+          "linkshelf/playwright.config.js",
+          "linkshelf/tests/e2e/link-shelf.spec.js"
         ],
-        "qa_verify_command": "cd linkshelf && go test ./internal/...",
+        "qa_verify_command": "cd linkshelf && npm install --ignore-scripts && npx playwright test --list",
         "spec_focus": "Implement store package, schema, and HTTP handlers. Tests are optional; command verifies compilation."
       },
       {
