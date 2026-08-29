@@ -37,7 +37,7 @@ func TestListStartsEmptyAndOrdersNewestFirst(t *testing.T) {
 
 	links, err := store.List(ctx)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("List() on empty store returned error: %v", err)
 	}
 	if links == nil || len(links) != 0 {
 		t.Fatalf("List() = %#v, want a non-nil empty slice", links)
@@ -45,25 +45,94 @@ func TestListStartsEmptyAndOrdersNewestFirst(t *testing.T) {
 
 	first, err := store.Create(ctx, "First", "https://example.com/1")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Create(first) returned error: %v", err)
 	}
 	second, err := store.Create(ctx, "Second", "http://example.com/2")
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Create(second) returned error: %v", err)
 	}
 
 	links, err = store.List(ctx)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("List() after Create returned error: %v", err)
 	}
-	if len(links) != 2 || links[0].ID != second.ID || links[1].ID != first.ID {
-		t.Fatalf("List() = %#v, want newest-first order", links)
+	if len(links) != 2 {
+		t.Fatalf("len(List()) = %d, want 2", len(links))
 	}
+
+	// newest-first ordering and concrete field content
+	if links[0].ID != second.ID {
+		t.Fatalf("List()[0].ID = %d, want %d (newest first)", links[0].ID, second.ID)
+	}
+	if links[0].Title != "Second" {
+		t.Fatalf("List()[0].Title = %q, want %q", links[0].Title, "Second")
+	}
+	if links[0].URL != "http://example.com/2" {
+		t.Fatalf("List()[0].URL = %q, want %q", links[0].URL, "http://example.com/2")
+	}
+	if links[1].ID != first.ID {
+		t.Fatalf("List()[1].ID = %d, want %d", links[1].ID, first.ID)
+	}
+	if links[1].Title != "First" {
+		t.Fatalf("List()[1].Title = %q, want %q", links[1].Title, "First")
+	}
+	if links[1].URL != "https://example.com/1" {
+		t.Fatalf("List()[1].URL = %q, want %q", links[1].URL, "https://example.com/1")
+	}
+
+	// CreatedAt must be an RFC3339 UTC timestamp
 	if links[0].CreatedAt == "" {
 		t.Fatal("Create() returned an empty CreatedAt")
 	}
 	if created, err := time.Parse(time.RFC3339, links[0].CreatedAt); err != nil || created.Location() != time.UTC {
 		t.Fatalf("CreatedAt = %q, want an RFC3339 UTC timestamp", links[0].CreatedAt)
+	}
+
+	// Round-trip read-back: the link returned from Create must equal
+	// the matching entry in List, including Title/URL/CreatedAt.
+	if links[0].Title != second.Title || links[0].URL != second.URL || links[0].CreatedAt != second.CreatedAt {
+		t.Fatalf("List()[0] = %+v, want it to match Create result %+v", links[0], second)
+	}
+}
+
+func TestCreateReturnsPersistedFields(t *testing.T) {
+	testDB(t)
+	ctx := context.Background()
+
+	link, err := store.Create(ctx, "Example", "https://example.com/path")
+	if err != nil {
+		t.Fatalf("Create() returned error: %v", err)
+	}
+	if link.ID == 0 {
+		t.Fatal("Create() returned ID == 0")
+	}
+	if link.Title != "Example" {
+		t.Fatalf("Create().Title = %q, want %q", link.Title, "Example")
+	}
+	if link.URL != "https://example.com/path" {
+		t.Fatalf("Create().URL = %q, want %q", link.URL, "https://example.com/path")
+	}
+	if link.CreatedAt == "" {
+		t.Fatal("Create().CreatedAt is empty")
+	}
+
+	// Re-read by ID via List; the persisted row must round-trip with
+	// the same title, url, and created_at that Create returned.
+	links, err := store.List(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(links) != 1 {
+		t.Fatalf("len(List()) = %d, want 1", len(links))
+	}
+	if links[0].Title != "Example" {
+		t.Fatalf("persisted Title = %q, want %q", links[0].Title, "Example")
+	}
+	if links[0].URL != "https://example.com/path" {
+		t.Fatalf("persisted URL = %q, want %q", links[0].URL, "https://example.com/path")
+	}
+	if links[0].CreatedAt != link.CreatedAt {
+		t.Fatalf("persisted CreatedAt = %q, want %q", links[0].CreatedAt, link.CreatedAt)
 	}
 }
 
