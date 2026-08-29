@@ -59,7 +59,7 @@
 
   function loadLinks() {
     setError("");
-    return fetch("/api/links", { method: "GET", headers: { "Accept": "application/json" } })
+    return fetch("/links", { method: "GET", headers: { "Accept": "application/json" } })
       .then(function (res) {
         if (!res.ok) {
           throw new Error("Failed to load links (status " + res.status + ")");
@@ -77,7 +77,7 @@
 
   function createLink(title, url) {
     setError("");
-    return fetch("/api/links", {
+    return fetch("/links", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({ title: title, url: url })
@@ -102,7 +102,7 @@
 
   function deleteLink(id) {
     setError("");
-    return fetch("/api/links/" + encodeURIComponent(id), {
+    return fetch("/links/" + encodeURIComponent(id), {
       method: "DELETE",
       headers: { "Accept": "application/json" }
     })
