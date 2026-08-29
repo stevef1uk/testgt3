@@ -82,7 +82,7 @@
           "linkshelf/package.json",
           "linkshelf/tests/e2e.spec.js"
         ],
-        "qa_verify_command": "cd linkshelf && npm install --ignore-scripts && npx playwright test --list",
+        "qa_verify_command": "cd linkshelf && npm install --ignore-scripts && npx playwright test",
         "depends_on": [
           "frontend-ui"
         ]
