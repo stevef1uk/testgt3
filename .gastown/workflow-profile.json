@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "generated_at": "2026-08-29T14:35:06Z",
+  "source": "llm",
+  "confidence": "high",
+  "validation": {
+    "layout_root": "linkshelf",
+    "bead_title_contains": "Implement linkshelf/",
+    "unittest_module": "",
+    "qa_verify_command": "cd linkshelf && go mod tidy && go test ./... && cd .. && cd linkshelf && npx playwright test",
+    "test_runner": "custom",
+    "required_files": [
+      "linkshelf/go.mod",
+      "linkshelf/internal/store/schema.go",
+      "linkshelf/internal/store/store.go",
+      "linkshelf/internal/api/handlers.go",
+      "linkshelf/cmd/server/main.go",
+      "linkshelf/web/index.html",
+      "linkshelf/web/app.js",
+      "linkshelf/web/style.css"
+    ],
+    "delivery_phases": [
+      {
+        "id": "backend-setup",
+        "title": "Project Setup & Data Model",
+        "required_files": [
+          "linkshelf/go.mod",
+          "linkshelf/internal/store/schema.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go mod tidy",
+        "spec_focus": "Define go.mod, Link struct, InitSchema, and DDL."
+      },
+      {
+        "id": "backend-store",
+        "title": "Store Implementation",
+        "required_files": [
+          "linkshelf/internal/store/store.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go build ./internal/store",
+        "depends_on": [
+          "backend-setup"
+        ],
+        "spec_focus": "Implement List, Create, Delete package-level functions with validation."
+      },
+      {
+        "id": "backend-api",
+        "title": "HTTP Handlers & Server",
+        "required_files": [
+          "linkshelf/internal/api/handlers.go",
+          "linkshelf/cmd/server/main.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go build ./...",
+        "depends_on": [
+          "backend-store"
+        ],
+        "spec_focus": "Implement HTTP handlers for API and static files, and the main server entry point."
+      },
+      {
+        "id": "frontend-ui",
+        "title": "Frontend Assets",
+        "required_files": [
+          "linkshelf/web/index.html",
+          "linkshelf/web/app.js",
+          "linkshelf/web/style.css"
+        ],
+        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
+        "depends_on": [
+          "backend-api"
+        ],
+        "spec_focus": "Create the HTML, JS, and CSS files for the bookmark UI."
+      },
+      {
+        "id": "e2e-testing",
+        "title": "Playwright E2E & Verification",
+        "required_files": [],
+        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
+        "depends_on": [
+          "frontend-ui"
+        ],
+        "spec_focus": "Set up Playwright and run e2e tests to verify UI functionality and API integration."
+      }
+    ],
+    "active_phase_id": "backend-setup",
+    "spec_summary": "Link Shelf is a simple Go bookmark application with a SQLite backend and a vanilla HTML/JS frontend. The project is modularized with internal packages for store and api, and a cmd/server for the entry point. The goal is to implement a minimal CRUD interface for links, served on port 8080 with static files for the UI. Success is defined by passing `go test ./...` and `npx playwright test`.",
+    "min_architecture_bytes": 2500,
+    "min_plan_bytes": 625,
+    "min_implementation_file_bytes": 400,
+    "min_substantive_lines": 3,
+    "min_test_plan_bytes": 400,
+    "ui_command": "",
+    "max_review_retries": 3,
+    "python_venv_dir": "off",
+    "dev_server_port": 8080
+  },
+  "test_plan_reviewed": false
+}
