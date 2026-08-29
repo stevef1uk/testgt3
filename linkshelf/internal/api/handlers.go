@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -114,11 +115,36 @@ func staticFileHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	http.ServeFile(w, r, webFile(filepath.Clean(name)))
+	serveWebFile(w, r, filepath.Clean(name))
+}
+
+func serveWebFile(w http.ResponseWriter, r *http.Request, name string) {
+	path := webFile(name)
+	file, err := os.Open(path)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil || info.IsDir() {
+		http.NotFound(w, r)
+		return
+	}
+	http.ServeContent(w, r, name, info.ModTime(), file)
 }
 
 func webFile(name string) string {
+	roots := make([]string, 0, 2)
 	if root, err := os.Getwd(); err == nil {
+		roots = append(roots, root)
+	}
+	if _, sourceFile, _, ok := runtime.Caller(0); ok {
+		roots = append(roots, filepath.Dir(sourceFile))
+	}
+
+	for _, root := range roots {
 		for dir := root; ; dir = filepath.Dir(dir) {
 			candidate := filepath.Join(dir, "web", name)
 			if _, err := os.Stat(candidate); err == nil {
