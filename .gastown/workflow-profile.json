@@ -88,10 +88,11 @@
         ]
       }
     ],
-    "active_phase_id": "backend-api",
+    "active_phase_id": "frontend-ui",
     "completed_phase_ids": [
       "backend-setup",
-      "backend-store"
+      "backend-store",
+      "backend-api"
     ],
     "spec_summary": "Link Shelf is a simple Go bookmark application with a SQLite backend and a vanilla HTML/JS frontend. The project is modularized with internal packages for store and api, and a cmd/server for the entry point. The goal is to implement a minimal CRUD interface for links, served on port 8080 with static files for the UI. Success is defined by passing `go test ./...` and `npx playwright test`.",
     "min_architecture_bytes": 2500,
