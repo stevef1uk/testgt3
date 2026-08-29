@@ -152,5 +152,12 @@
     "validated": true,
     "validated_at": "2026-08-29T22:21:44Z",
     "created_at": "2026-08-29T22:21:44Z"
+  },
+  "5:linkshelf/cmd/server/main.go": {
+    "content": "// Command server runs the Link Shelf HTTP service.\npackage main\n\nimport (\n\t\"database/sql\"\n\t\"log\"\n\t\"net/http\"\n\n\t\"linkshelf/internal/api\"\n\t\"linkshelf/internal/store\"\n\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n\nfunc main() {\n\tdb, err := sql.Open(\"sqlite3\", \"linkshelf.db\")\n\tif err != nil {\n\t\tlog.Fatalf(\"open db: %v\", err)\n\t}\n\tdefer db.Close()\n\n\tif err := store.InitSchema(db); err != nil {\n\t\tlog.Fatalf(\"init schema: %v\", err)\n\t}\n\tstore.DB = db\n\n\tmux := http.NewServeMux()\n\tapi.RegisterRoutes(mux)\n\n\t// Keep route registration in main explicit while delegating request\n\t// handling to the API package's route table.\n\thttp.HandleFunc(\"/\", mux.ServeHTTP)\n\thttp.HandleFunc(\"/static/\", mux.ServeHTTP)\n\thttp.HandleFunc(\"/api/links\", mux.ServeHTTP)\n\thttp.HandleFunc(\"/api/links/\", mux.ServeHTTP)\n\n\tlog.Println(\"listening on :8080\")\n\tif err := http.ListenAndServe(\":8080\", nil); err != nil {\n\t\tlog.Fatalf(\"listen: %v\", err)\n\t}\n}\n",
+    "md5": "86539227c804082b12b08e70858a4787",
+    "validated": true,
+    "validated_at": "2026-08-29T22:25:15Z",
+    "created_at": "2026-08-29T22:25:15Z"
   }
 }
