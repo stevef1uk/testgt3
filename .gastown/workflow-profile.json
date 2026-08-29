@@ -100,7 +100,7 @@
         "spec_focus": "Verify HTTP server runs and responds correctly"
       }
     ],
-    "active_phase_id": "frontend-ui",
+    "active_phase_id": "e2e-testing",
     "completed_phase_ids": [
       "backend-setup",
       "backend-store",
