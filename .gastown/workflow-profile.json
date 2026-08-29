@@ -20,7 +20,10 @@
       "linkshelf/web/style.css",
       "linkshelf/playwright.config.js",
       "linkshelf/package.json",
-      "linkshelf/tests/e2e.spec.js"
+      "linkshelf/tests/e2e.spec.js",
+      "linkshelf/internal/store/schema_test.go",
+      "linkshelf/internal/store/store_test.go",
+      "linkshelf/internal/api/handlers_test.go"
     ],
     "delivery_phases": [
       {
@@ -28,7 +31,8 @@
         "title": "backend-setup",
         "required_files": [
           "linkshelf/go.mod",
-          "linkshelf/internal/store/schema.go"
+          "linkshelf/internal/store/schema.go",
+          "linkshelf/internal/store/schema_test.go"
         ],
         "qa_verify_command": "cd linkshelf && go build ./..."
       },
@@ -36,7 +40,8 @@
         "id": "backend-store",
         "title": "backend-store",
         "required_files": [
-          "linkshelf/internal/store/store.go"
+          "linkshelf/internal/store/store.go",
+          "linkshelf/internal/store/store_test.go"
         ],
         "qa_verify_command": "cd linkshelf && go build ./...",
         "depends_on": [
@@ -48,7 +53,8 @@
         "title": "backend-api",
         "required_files": [
           "linkshelf/internal/api/handlers.go",
-          "linkshelf/cmd/server/main.go"
+          "linkshelf/cmd/server/main.go",
+          "linkshelf/internal/api/handlers_test.go"
         ],
         "qa_verify_command": "cd linkshelf && go build ./...",
         "depends_on": [
@@ -94,5 +100,6 @@
     "python_venv_dir": "off",
     "dev_server_port": 8080
   },
-  "test_plan_reviewed": false
+  "test_plan_reviewed": true,
+  "test_plan_frozen": true
 }
