@@ -87,14 +87,14 @@
     "content": "const { defineConfig, devices } = require('@playwright/test');\n\nmodule.exports = defineConfig({\n  testDir: './tests',\n  retries: 0,\n  reporter: 'list',\n  use: {\n    baseURL: 'http://localhost:8080',\n  },\n  projects: [\n  ],\n  webServer: {\n    command: 'go run ./cmd/server',\n    cwd: '.',\n    port: 8080,\n  },\n});",
     "md5": "718511c0cd5735b1d2c1b8eb685fe7c5",
     "validated": true,
-    "validated_at": "2026-08-29T20:41:26Z",
-    "created_at": "2026-08-29T20:41:26Z"
+    "validated_at": "2026-08-29T20:46:29Z",
+    "created_at": "2026-08-29T20:46:29Z"
   },
   "4:linkshelf/tests/e2e.spec.js": {
     "content": "const { test, expect } = require('@playwright/test');\n\ntest.describe('LinkShelf', () =\u003e ",
     "md5": "9bcdf4a55d05751d54d68715ea133c30",
     "validated": true,
-    "validated_at": "2026-08-29T20:41:40Z",
-    "created_at": "2026-08-29T20:41:40Z"
+    "validated_at": "2026-08-29T20:46:13Z",
+    "created_at": "2026-08-29T20:46:13Z"
   }
 }
