@@ -8,6 +8,10 @@ module.exports = defineConfig({
     baseURL: 'http://localhost:8080',
   },
   projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
   webServer: {
     command: 'go run ./cmd/server',
