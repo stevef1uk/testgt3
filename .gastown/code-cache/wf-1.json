@@ -87,14 +87,14 @@
     "content": "const { defineConfig, devices } = require('@playwright/test');\n\nmodule.exports = defineConfig({\n  testDir: './tests',\n  retries: 0,\n  reporter: 'list',\n  use: {\n    baseURL: 'http://localhost:8080',\n  },\n  projects: [\n  ],\n  webServer: {\n    command: 'go run ./cmd/server',\n    cwd: '.',\n    port: 8080,\n  },\n});",
     "md5": "718511c0cd5735b1d2c1b8eb685fe7c5",
     "validated": true,
-    "validated_at": "2026-08-29T20:46:29Z",
-    "created_at": "2026-08-29T20:46:29Z"
+    "validated_at": "2026-08-29T20:55:08Z",
+    "created_at": "2026-08-29T20:55:08Z"
   },
   "4:linkshelf/tests/e2e.spec.js": {
-    "content": "const { test, expect } = require('@playwright/test');\n\ntest.describe('LinkShelf', () =\u003e ",
-    "md5": "9bcdf4a55d05751d54d68715ea133c30",
+    "content": "const { test, expect } = require('@playwright/test');\n\ntest.describe('LinkShelf', () =\u003e {\n  test('loads the UI', async ({ page }) =\u003e {\n    await page.goto('/');\n    await expect(page.locator('#title')).toBeVisible();\n    await expect(page.locator('#url')).toBeVisible();\n    await expect(page.getByRole('button', { name: 'Add' })).toBeVisible();\n    await expect(page.locator('#links')).toBeVisible();\n  });\n\n  test('adds and deletes a link', async ({ page }) =\u003e {\n    await page.goto('/');\n\n    const title = `E2E link ${Date.now()}`;\n    await page.locator('#title').fill(title);\n    await page.locator('#url').fill('https://example.com/e2e');\n    await page.getByRole('button', { name: 'Add' }).click();\n\n    const item = page.locator('#links li', { hasText: title });\n    await expect(item).toBeVisible();\n\n    await item.getByRole('button', { name: /delete/i }).click();\n    await expect(item).toHaveCount(0);\n  });\n\n  test('serves static assets', async ({ page }) =\u003e {\n    const response = await page.request.get('/static/style.css');\n    expect(response.status()).toBe(200);\n  });\n});",
+    "md5": "645ed43630a50fbafb600e85d43a7a5c",
     "validated": true,
-    "validated_at": "2026-08-29T20:46:13Z",
-    "created_at": "2026-08-29T20:46:13Z"
+    "validated_at": "2026-08-29T20:55:09Z",
+    "created_at": "2026-08-29T20:55:09Z"
   }
 }
