@@ -8,7 +8,7 @@
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
     "qa_verify_command": "cd linkshelf && go mod tidy && go test ./... && cd .. && cd linkshelf && npx playwright test",
-    "test_runner": "custom",
+    "test_runner": "go",
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
@@ -17,34 +17,35 @@
       "linkshelf/cmd/server/main.go",
       "linkshelf/web/index.html",
       "linkshelf/web/app.js",
-      "linkshelf/web/style.css"
+      "linkshelf/web/style.css",
+      "linkshelf/playwright.config.js",
+      "linkshelf/package.json",
+      "linkshelf/tests/e2e.spec.js"
     ],
     "delivery_phases": [
       {
         "id": "backend-setup",
-        "title": "Project Setup & Data Model",
+        "title": "backend-setup",
         "required_files": [
           "linkshelf/go.mod",
           "linkshelf/internal/store/schema.go"
         ],
-        "qa_verify_command": "cd linkshelf && go mod tidy",
-        "spec_focus": "Define go.mod, Link struct, InitSchema, and DDL."
+        "qa_verify_command": "cd linkshelf && go build ./..."
       },
       {
         "id": "backend-store",
-        "title": "Store Implementation",
+        "title": "backend-store",
         "required_files": [
           "linkshelf/internal/store/store.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./internal/store",
+        "qa_verify_command": "cd linkshelf && go build ./...",
         "depends_on": [
           "backend-setup"
-        ],
-        "spec_focus": "Implement List, Create, Delete package-level functions with validation."
+        ]
       },
       {
         "id": "backend-api",
-        "title": "HTTP Handlers & Server",
+        "title": "backend-api",
         "required_files": [
           "linkshelf/internal/api/handlers.go",
           "linkshelf/cmd/server/main.go"
@@ -52,12 +53,11 @@
         "qa_verify_command": "cd linkshelf && go build ./...",
         "depends_on": [
           "backend-store"
-        ],
-        "spec_focus": "Implement HTTP handlers for API and static files, and the main server entry point."
+        ]
       },
       {
         "id": "frontend-ui",
-        "title": "Frontend Assets",
+        "title": "frontend-ui",
         "required_files": [
           "linkshelf/web/index.html",
           "linkshelf/web/app.js",
@@ -66,18 +66,20 @@
         "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
         "depends_on": [
           "backend-api"
-        ],
-        "spec_focus": "Create the HTML, JS, and CSS files for the bookmark UI."
+        ]
       },
       {
         "id": "e2e-testing",
-        "title": "Playwright E2E & Verification",
-        "required_files": [],
-        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
+        "title": "e2e-testing",
+        "required_files": [
+          "linkshelf/playwright.config.js",
+          "linkshelf/package.json",
+          "linkshelf/tests/e2e.spec.js"
+        ],
+        "qa_verify_command": "cd linkshelf && npm install --ignore-scripts && npx playwright test --list",
         "depends_on": [
           "frontend-ui"
-        ],
-        "spec_focus": "Set up Playwright and run e2e tests to verify UI functionality and API integration."
+        ]
       }
     ],
     "active_phase_id": "backend-setup",
