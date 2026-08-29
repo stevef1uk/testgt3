@@ -12,18 +12,18 @@
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
+      "linkshelf/internal/store/schema_test.go",
       "linkshelf/internal/store/store.go",
+      "linkshelf/internal/store/store_test.go",
       "linkshelf/internal/api/handlers.go",
       "linkshelf/cmd/server/main.go",
+      "linkshelf/internal/api/handlers_test.go",
       "linkshelf/web/index.html",
       "linkshelf/web/app.js",
       "linkshelf/web/style.css",
       "linkshelf/playwright.config.js",
       "linkshelf/package.json",
-      "linkshelf/tests/e2e.spec.js",
-      "linkshelf/internal/store/schema_test.go",
-      "linkshelf/internal/store/store_test.go",
-      "linkshelf/internal/api/handlers_test.go"
+      "linkshelf/tests/e2e.spec.js"
     ],
     "delivery_phases": [
       {
@@ -100,7 +100,8 @@
         "spec_focus": "Verify HTTP server runs and responds correctly"
       }
     ],
-    "active_phase_id": "e2e-testing",
+    "active_phase_id": "backend-setup",
+    "rewound_from_phase_id": "backend-api",
     "completed_phase_ids": [
       "backend-setup",
       "backend-store",
