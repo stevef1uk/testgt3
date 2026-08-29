@@ -12,18 +12,18 @@
     "required_files": [
       "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
-      "linkshelf/internal/store/schema_test.go",
       "linkshelf/internal/store/store.go",
-      "linkshelf/internal/store/store_test.go",
       "linkshelf/internal/api/handlers.go",
       "linkshelf/cmd/server/main.go",
-      "linkshelf/internal/api/handlers_test.go",
       "linkshelf/web/index.html",
       "linkshelf/web/app.js",
       "linkshelf/web/style.css",
       "linkshelf/playwright.config.js",
       "linkshelf/package.json",
-      "linkshelf/tests/e2e.spec.js"
+      "linkshelf/tests/e2e.spec.js",
+      "linkshelf/internal/store/schema_test.go",
+      "linkshelf/internal/store/store_test.go",
+      "linkshelf/internal/api/handlers_test.go"
     ],
     "delivery_phases": [
       {
@@ -86,6 +86,18 @@
         "depends_on": [
           "frontend-ui"
         ]
+      },
+      {
+        "id": "smoke-test",
+        "title": "Smoke Test with Running Server",
+        "required_files": [
+          "linkshelf/cmd/server/main.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go build ./...",
+        "depends_on": [
+          "e2e-testing"
+        ],
+        "spec_focus": "Verify HTTP server runs and responds correctly"
       }
     ],
     "active_phase_id": "e2e-testing",
