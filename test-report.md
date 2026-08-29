@@ -1,28 +1,13 @@
-# Test Review — Link Shelf MVP
+# Test Review — backend-api
 
 ## Summary
-All active-phase requirement rows have planned test files with substantive assertions. Go tests and build pass. Playwright discovery verification is required for final approval.
+The active backend-api test plan is covered by substantive API handler tests. Phase verification (`go build ./...`) passed.
 
 ## Per-requirement results
-### backend-setup — PASS
-- Test file: `linkshelf/internal/store/schema_test.go`
-- Real in-memory SQLite schema and idempotency assertions are present.
-
-### backend-store — PASS
-- Test file: `linkshelf/internal/store/store_test.go`
-- Real CRUD, ordering, validation, timestamp, and missing-delete assertions are present.
-
-### backend-api — PASS
+### Active backend-api requirements
 - Test file: `linkshelf/internal/api/handlers_test.go`
-- Real HTTP integration tests exercise API routes, response contracts, static files, index serving, and traversal rejection.
-
-### frontend-ui — PASS
-- Test file: `linkshelf/tests/e2e.spec.js`
-- Browser assertions exercise visible controls, add, delete, and static assets.
-
-### e2e-testing — PASS
-- Test file: `linkshelf/tests/e2e.spec.js`
-- Four substantive Playwright tests are present.
+- Verify result: passed
+- Notes: Tests exercise the HTTP handler paths using real requests/response recording and contain behavioral assertions; no stub markers or placeholder bodies were found.
 
 ## Overall assessment
-Awaiting successful Playwright list verification; no missing or stub test files were found.
+All active-phase planned tests are present and substantive. The implementation builds successfully and is ready for QA sign-off.
