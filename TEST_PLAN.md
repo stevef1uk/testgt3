@@ -3,77 +3,76 @@
 ## Requirements → tests
 
 ### backend-setup
-Requirement: Establish the linkshelf Go module and schema implementation, including the exact module metadata and idempotent Link table initialization.
+Requirement: Establish the Go module and schema foundation required to build LinkShelf.
 Level: integration
-Test file: linkshelf/go.mod
-Bead ID: te-t7g, te-q4t
+Test file: linkshelf/internal/store/schema.go
+Bead ID: 
 Phase: backend-setup
 Scenarios:
-- Run the backend setup verification from a clean linkshelf module and confirm go build ./... succeeds.
-- Verify the module declares linkshelf with Go 1.22 and the SQLite dependency required by the schema package.
-- Verify schema initialization creates the links table with id, title, url, and created_at columns and remains idempotent.
+- Run the phase build verification with the declared module and SQLite dependency.
+- Initialize the schema on a fresh database and repeat initialization.
 Assertions:
-- linkshelf/go.mod has the required module and dependency declarations and the package builds successfully.
-- InitSchema succeeds on a fresh database and on a repeated invocation without duplicate-table errors.
-- The resulting schema contains the required columns and no second schema owner is introduced.
+- The linkshelf module builds successfully with the required Go and SQLite declarations.
+- Schema initialization is idempotent and provides the Link table required by later phases.
 
 ### backend-store
-Requirement: Implement package-level DB, List, Create, and Delete with ordering, validation, timestamp, and missing-ID behavior.
+Requirement: Persist links with the domain operations defined by the specification.
 Level: unit
 Test file: linkshelf/internal/store/store_test.go
-Bead ID:
+Bead ID: 
 Phase: backend-store
 Scenarios:
-- List an initialized empty database, create multiple links, and verify ORDER BY id DESC.
-- Create valid links, including a Unicode title at 200 runes, then test empty/201-rune titles and non-http(s) URLs.
-- Delete an existing link and attempt to delete an absent ID.
+- Create, list, and delete a link through the store API.
+- Exercise empty storage and missing-link behavior.
 Assertions:
-- List returns a non-nil [] and exact Link fields; Create returns a positive ID and RFC3339 UTC CreatedAt.
-- Validation rejects empty or overlong titles and URLs without http:// or https:// without inserting rows.
-- Delete removes an existing row and returns an error for a missing ID.
+- Stored fields round-trip without mutation.
+- Missing records return the specified not-found/error result.
+- List results are deterministic and deletion removes the record.
 
 ### backend-api
-Requirement: Expose the exact root, static, list, create, and delete HTTP API contract with documented JSON responses, status codes, and static path safety.
+Requirement: Expose the specified link API routes and response contracts.
 Level: integration
 Test file: linkshelf/internal/api/handlers_test.go
-Bead ID:
+Bead ID: 
 Phase: backend-api
 Scenarios:
-- GET / returns index.html; GET /static/style.css returns 200, while a missing file and a path containing .. return 404.
-- GET /api/links returns JSON [] for an empty store and returns newest-first links after creation.
-- POST valid JSON returns 201 and the created link; malformed JSON, missing fields, invalid title length, and invalid URL return 400 with an error object.
-- DELETE an existing numeric ID returns 204; deleting a missing or malformed ID returns 404 with an error object.
+- Call every documented route with valid requests.
+- Send malformed JSON, missing fields, and unknown IDs.
 Assertions:
-- Route methods, status codes, content types, JSON field names, and empty-array shape match SPEC.md.
-- Static responses cannot escape linkshelf/web or fall through from API paths.
-- Invalid POST requests do not create records and delete errors are deterministic JSON.
+- Each route uses the documented method, path, status, and JSON shape.
+- Invalid input is rejected without changing stored data.
+- Unknown resources return the documented error status.
+
+
 
 
 
 ### e2e-testing
-Requirement: Verify the complete running-application browser flow, including UI load, add/delete persistence, and static-file serving.
+Requirement: Cover the complete link-management flow against the running server.
 Level: ui
 Test file: linkshelf/tests/e2e.spec.js
-Bead ID:
+Bead ID: te-6ca
 Phase: e2e-testing
 Scenarios:
-- Start the configured server, load the page, and verify title and URL inputs, Add button, and links list are visible.
-- Add a valid bookmark, reload, and verify its title and destination are rendered; then delete it and verify it disappears after refresh.
-- Request a static asset through /static/ and verify a missing asset is not served.
+- Run the Playwright Chromium suite against the configured web server.
+- Execute the complete create, read, update, and delete flow.
+- Reload between operations to verify server-backed persistence.
 Assertions:
-- Playwright runs against the real server and SQLite-backed API, not mocks.
-- Add and delete operations refresh the list and persist across page reload.
-- Static assets are served beneath the web mapping with expected success or 404 status.
+- The suite starts the Go server using the Playwright webServer configuration.
+- The end-to-end flow passes in Chromium.
+- Browser-visible state agrees with the server-backed state.
 
 ### smoke-test
-Requirement: Verify the assembled LinkShelf application starts successfully and its primary user path is reachable.
+Requirement: Verify the assembled server remains buildable and its primary UI/API entrypoint is reachable.
 Level: integration
 Test file: linkshelf/cmd/server/main.go
-Bead ID:
+Bead ID: 
 Phase: smoke-test
 Scenarios:
-- Start the built application using the documented command.
-- Request the root UI and the primary links API route.
+- Build the completed server with the documented command.
+- Start it and request the root page and primary links API endpoint.
 Assertions:
-- The process starts without a schema or dependency error.
-- The root responds successfully with the UI and the API responds with valid JSON.
+- The server builds and starts without schema or dependency errors.
+- The root serves the UI and the API returns the documented JSON response.
+
+
