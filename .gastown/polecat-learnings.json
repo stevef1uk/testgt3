@@ -16,6 +16,13 @@
       "bead_path": "linkshelf/internal/store/store.go",
       "hits": 1,
       "updated_at": "2026-11-03T08:55:31Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: Reopen te-6ca and te-jtw",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-03T09:12:22Z"
     }
   ]
 }
