@@ -17,8 +17,8 @@
     "content": "package store\n\nimport (\n\t\"database/sql\"\n)\n\n// Link represents a bookmark in the link shelf.\ntype Link struct {\n\tID        int64  `json:\"id\"`\n\tTitle     string `json:\"title\"`\n\tURL       string `json:\"url\"`\n\tCreatedAt string `json:\"created_at\"` // RFC3339 UTC\n}\n\nconst schemaDDL = `CREATE TABLE IF NOT EXISTS links (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    title TEXT NOT NULL,\n    url TEXT NOT NULL,\n    created_at TEXT NOT NULL\n);`\n\n// InitSchema creates the links table if it does not exist.\nfunc InitSchema(db *sql.DB) error {\n\t_, err := db.Exec(schemaDDL)\n\treturn err\n}\n",
     "md5": "55d774d6da88b3c575e7cd6ab4607f92",
     "validated": true,
-    "validated_at": "2026-08-29T21:56:08Z",
-    "created_at": "2026-08-29T21:56:08Z"
+    "validated_at": "2026-11-03T08:49:59Z",
+    "created_at": "2026-11-03T08:49:59Z"
   },
   "0:linkshelf/internal/store/schema_test.go": {
     "content": "package store_test\n\nimport (\n\t\"database/sql\"\n\t\"testing\"\n\n\t\"linkshelf/internal/store\"\n\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n\nfunc TestInitSchemaCreatesLinksTable(t *testing.T) {\n\tdb, err := sql.Open(\"sqlite3\", \":memory:\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdefer db.Close()\n\n\tif err := store.InitSchema(db); err != nil {\n\t\tt.Fatalf(\"InitSchema() error = %v\", err)\n\t}\n\n\tvar tableName string\n\terr = db.QueryRow(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'links'`).Scan(\u0026tableName)\n\tif err != nil {\n\t\tt.Fatalf(\"links table was not created: %v\", err)\n\t}\n\tif tableName != \"links\" {\n\t\tt.Fatalf(\"table name = %q, want links\", tableName)\n\t}\n}\n\nfunc TestInitSchemaIsIdempotent(t *testing.T) {\n\tdb, err := sql.Open(\"sqlite3\", \":memory:\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdefer db.Close()\n\n\tif err := store.InitSchema(db); err != nil {\n\t\tt.Fatal(err)\n\t}\n\tif err := store.InitSchema(db); err != nil {\n\t\tt.Fatalf(\"second InitSchema() error = %v\", err)\n\t}\n}\n",
