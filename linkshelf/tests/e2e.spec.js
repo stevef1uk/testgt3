@@ -25,9 +25,12 @@ test.describe('LinkShelf', () => {
     await expect(link).toBeVisible();
 
     const item = page.locator('#links li').filter({ has: link });
-    const deleteButton = item.getByRole('button', { name: 'Delete' });
-    await expect(deleteButton).toBeVisible();
-    await deleteButton.click();
+    const deleteResponse = page.waitForResponse((response) =>
+      response.url().includes('/api/links/') &&
+      response.request().method() === 'DELETE'
+    );
+    await item.getByRole('button', { name: 'Delete' }).click();
+    await deleteResponse;
     await expect(link).not.toBeVisible();
   });
 });
