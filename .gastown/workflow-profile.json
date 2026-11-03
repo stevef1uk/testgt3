@@ -10,11 +10,11 @@
     "qa_verify_command": "cd linkshelf && go mod tidy && go test ./... && cd .. && cd linkshelf && npx playwright test",
     "test_runner": "go",
     "required_files": [
-      "linkshelf/go.mod",
       "linkshelf/internal/store/schema.go",
-      "linkshelf/internal/store/schema_test.go",
+      "linkshelf/go.mod",
       "linkshelf/internal/store/store.go",
       "linkshelf/internal/store/store_test.go",
+      "linkshelf/internal/store/schema_test.go",
       "linkshelf/internal/api/handlers.go",
       "linkshelf/cmd/server/main.go",
       "linkshelf/internal/api/handlers_test.go",
@@ -30,9 +30,8 @@
         "id": "backend-setup",
         "title": "backend-setup",
         "required_files": [
-          "linkshelf/go.mod",
           "linkshelf/internal/store/schema.go",
-          "linkshelf/internal/store/schema_test.go"
+          "linkshelf/go.mod"
         ],
         "qa_verify_command": "cd linkshelf && go build ./..."
       },
@@ -41,9 +40,10 @@
         "title": "backend-store",
         "required_files": [
           "linkshelf/internal/store/store.go",
-          "linkshelf/internal/store/store_test.go"
+          "linkshelf/internal/store/store_test.go",
+          "linkshelf/internal/store/schema_test.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
+        "qa_verify_command": "cd linkshelf && go test ./...",
         "depends_on": [
           "backend-setup"
         ]
@@ -56,7 +56,7 @@
           "linkshelf/cmd/server/main.go",
           "linkshelf/internal/api/handlers_test.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
+        "qa_verify_command": "cd linkshelf && go test ./...",
         "depends_on": [
           "backend-store"
         ]
@@ -82,22 +82,21 @@
           "linkshelf/package.json",
           "linkshelf/tests/e2e.spec.js"
         ],
-        "qa_verify_command": "cd linkshelf && npm install --ignore-scripts && npx playwright test",
+        "qa_verify_command": "cd linkshelf && npm install --ignore-scripts --prefer-offline --no-audit --no-fund && npx playwright test",
         "depends_on": [
           "frontend-ui"
         ]
       },
       {
         "id": "smoke-test",
-        "title": "Smoke Test with Running Server",
+        "title": "smoke-test",
         "required_files": [
           "linkshelf/cmd/server/main.go"
         ],
         "qa_verify_command": "cd linkshelf && go build ./...",
         "depends_on": [
           "e2e-testing"
-        ],
-        "spec_focus": "Verify HTTP server runs and responds correctly"
+        ]
       }
     ],
     "active_phase_id": "backend-setup",
