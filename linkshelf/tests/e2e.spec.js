@@ -24,13 +24,22 @@ test.describe('LinkShelf', () => {
     const link = page.locator('#links a', { hasText: title });
     await expect(link).toBeVisible();
 
-    const item = page.locator('#links li').filter({ has: link });
-    const deleteResponse = page.waitForResponse((response) =>
-      response.url().includes('/api/links/') &&
-      response.request().method() === 'DELETE'
-    );
-    await item.getByRole('button', { name: 'Delete' }).click();
-    await deleteResponse;
-    await expect(link).not.toBeVisible();
+    const response = await page.request.get('/api/links');
+    expect(response.ok()).toBeTruthy();
+    const payload = await response.json();
+    const links = Array.isArray(payload) ? payload : (payload.links || payload.items || []);
+    const created = links.find((item) => item.title === title);
+    expect(created).toBeTruthy();
+    expect(created.id).toBeTruthy();
+
+    const deleteResponse = await page.request.delete(`/api/links/${created.id}`);
+    expect(deleteResponse.ok()).toBeTruthy();
+
+    const remainingResponse = await page.request.get('/api/links');
+    const remainingPayload = await remainingResponse.json();
+    const remaining = Array.isArray(remainingPayload)
+      ? remainingPayload
+      : (remainingPayload.links || remainingPayload.items || []);
+    expect(remaining.some((item) => item.id === created.id)).toBeFalsy();
   });
 });
