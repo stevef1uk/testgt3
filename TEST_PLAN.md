@@ -1,81 +1,77 @@
-# Test Plan — Link Shelf
+# Test Plan — LinkShelf
 
 ## Requirements → tests
 
 ### backend-setup
-Requirement: The module and schema must match the SPEC data model exactly, with `Link` and idempotent `InitSchema` in `internal/store/schema.go`.
+Requirement: Initialize the LinkShelf backend and create the links database schema without failing on a fresh database or an already-initialized database.
 Level: unit
-Test file:
-Bead ID: te-q4t
+Test file: linkshelf/internal/store/schema.go
+Bead ID: te-q4t, te-t7g
 Phase: backend-setup
 Scenarios:
-- Build the module and schema package with the prescribed Go toolchain.
-- Verify the supplied schema implementation defines the required table and initialization behavior.
+- Initialize a fresh in-memory database and verify the links table and required columns exist.
+- Run schema initialization twice and verify it is idempotent.
 Assertions:
-- `go build ./...` succeeds for the linkshelf module.
-- The schema implementation remains the sole owner of the Link model, DDL, and InitSchema function.
+- InitSchema returns no error and the table is queryable.
+- The schema contains the required id, title, url, and created_at columns.
 
 ### backend-store
-Requirement: Package-level `store.DB`, `List`, `Create`, and `Delete` implement the exact store API, validation, ordering, and missing-ID behavior.
+Requirement: Implement package-level DB, List, Create, and Delete with ordering, validation, timestamp, and missing-ID behavior.
 Level: unit
 Test file: linkshelf/internal/store/store_test.go
 Bead ID:
 Phase: backend-store
 Scenarios:
-- Initialize an in-memory database with `InitSchema`, assign `store.DB`, and list an empty table.
-- Create valid links and verify newest IDs are listed first.
-- Try empty or over-200-rune titles and empty or non-HTTP(S) URLs.
-- Delete an existing link and then delete a missing ID.
+- List an initialized empty database, create multiple links, and verify ORDER BY id DESC.
+- Create valid links, including a Unicode title at 200 runes, then test empty/201-rune titles and non-http(s) URLs.
+- Delete an existing link and attempt to delete an absent ID.
 Assertions:
-- Empty `List` returns a non-nil empty slice.
-- Valid creation persists title, URL, ID, and an RFC3339 UTC timestamp.
-- Invalid inputs return errors without creating rows.
-- `List` uses descending ID order and `Delete` errors when the ID is absent.
+- List returns a non-nil [] and exact Link fields; Create returns a positive ID and RFC3339 UTC CreatedAt.
+- Validation rejects empty or overlong titles and URLs without http:// or https:// without inserting rows.
+- Delete removes an existing row and returns an error for a missing ID.
 
 ### backend-api
-Requirement: HTTP handlers and `main` implement the specified routes, JSON contracts, status codes, static traversal protection, and SQLite/server wiring.
+Requirement: Expose the exact root, static, list, create, and delete HTTP API contract with documented JSON responses, status codes, and static path safety.
 Level: integration
 Test file: linkshelf/internal/api/handlers_test.go
 Bead ID:
 Phase: backend-api
 Scenarios:
-- Exercise `/api/links` GET, valid and invalid POST requests, and DELETE success/missing-ID requests with `httptest`.
-- Request `/`, valid and missing `/static/{file}`, and a static path containing `..`.
-- Exercise unsupported methods, malformed JSON, invalid IDs, and JSON response bodies.
+- GET / returns index.html; GET /static/style.css returns 200, while a missing file and a path containing .. return 404.
+- GET /api/links returns JSON [] for an empty store and returns newest-first links after creation.
+- POST valid JSON returns 201 and the created link; malformed JSON, missing fields, invalid title length, and invalid URL return 400 with an error object.
+- DELETE an existing numeric ID returns 204; deleting a missing or malformed ID returns 404 with an error object.
 Assertions:
-- GET returns 200 and JSON `[]` when empty; POST returns 201 with a link; DELETE returns 204 or 404 with `{"error":"..."}`.
-- Invalid POST input returns 400 with a deterministic JSON error.
-- Root and valid static files return 200, while missing/traversal paths return 404.
-- Handler responses use the specified Link JSON fields and API routes do not fall through to static files.
-- Server wiring opens `linkshelf.db`, calls `InitSchema` before assigning `store.DB`, registers `http.DefaultServeMux`, logs port 8080, and listens on `:8080`.
+- Route methods, status codes, content types, JSON field names, and empty-array shape match SPEC.md.
+- Static responses cannot escape linkshelf/web or fall through from API paths.
+- Invalid POST requests do not create records and delete errors are deterministic JSON.
+
+
 
 ### e2e-testing
-Requirement: The Playwright harness must verify the live UI load, add/delete flow, and static file serving against the running application.
+Requirement: Verify the complete running-application browser flow, including UI load, add/delete persistence, and static-file serving.
 Level: ui
 Test file: linkshelf/tests/e2e.spec.js
 Bead ID:
 Phase: e2e-testing
 Scenarios:
-- Load the application and verify the title input, URL input, Add button, and links list are visible.
-- Enter a valid title and URL, add the link, then delete it through the UI.
-- Request a served static asset through `/static/`.
+- Start the configured server, load the page, and verify title and URL inputs, Add button, and links list are visible.
+- Add a valid bookmark, reload, and verify its title and destination are rendered; then delete it and verify it disappears after refresh.
+- Request a static asset through /static/ and verify a missing asset is not served.
 Assertions:
-- The page loads successfully and controls are usable.
-- The newly added link appears in the list and disappears after deletion.
-- The static asset request succeeds with the expected content/status.
-- Playwright configuration starts or targets the server at the configured base URL and `npx playwright test` passes.
+- Playwright runs against the real server and SQLite-backed API, not mocks.
+- Add and delete operations refresh the list and persist across page reload.
+- Static assets are served beneath the web mapping with expected success or 404 status.
 
 ### smoke-test
-Requirement: The completed server remains buildable and serves the UI on port 8080 while preserving database and route wiring.
+Requirement: Verify the assembled LinkShelf application starts successfully and its primary user path is reachable.
 Level: integration
 Test file: linkshelf/cmd/server/main.go
 Bead ID:
 Phase: smoke-test
 Scenarios:
-- Build the complete Go application after all phases.
-- Start the server with a writable working directory and request `/`, `/api/links`, and a static asset.
+- Start the built application using the documented command.
+- Request the root UI and the primary links API route.
 Assertions:
-- `go build ./...` succeeds.
-- The process starts on `:8080` and logs that it is listening.
-- The root UI, API, and static routes respond without breaking SQLite initialization.
----END WRITE
+- The process starts without a schema or dependency error.
+- The root responds successfully with the UI and the API responds with valid JSON.
