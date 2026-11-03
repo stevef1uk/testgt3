@@ -24,7 +24,7 @@ test.describe('LinkShelf', () => {
     const link = page.locator('#links a', { hasText: title });
     await expect(link).toBeVisible();
 
-    const item = link.locator('..');
+    const item = page.locator('#links li').filter({ has: link });
     const deleteButton = item.getByRole('button', { name: 'Delete' });
     await expect(deleteButton).toBeVisible();
     await deleteButton.click();
