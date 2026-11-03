@@ -23,6 +23,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-03T09:12:22Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: Phase verify fails: linkshelf/tests/e2e.spec.js delete test cannot find a Delete button because the rendered link ite...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-03T09:15:14Z"
     }
   ]
 }
