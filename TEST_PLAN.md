@@ -3,17 +3,19 @@
 ## Requirements → tests
 
 ### backend-setup
-Requirement: Initialize the LinkShelf backend and create the links database schema without failing on a fresh database or an already-initialized database.
-Level: unit
-Test file: linkshelf/internal/store/schema.go
-Bead ID: te-q4t, te-t7g
+Requirement: Establish the linkshelf Go module and schema implementation, including the exact module metadata and idempotent Link table initialization.
+Level: integration
+Test file: linkshelf/go.mod
+Bead ID: te-t7g, te-q4t
 Phase: backend-setup
 Scenarios:
-- Initialize a fresh in-memory database and verify the links table and required columns exist.
-- Run schema initialization twice and verify it is idempotent.
+- Run the backend setup verification from a clean linkshelf module and confirm go build ./... succeeds.
+- Verify the module declares linkshelf with Go 1.22 and the SQLite dependency required by the schema package.
+- Verify schema initialization creates the links table with id, title, url, and created_at columns and remains idempotent.
 Assertions:
-- InitSchema returns no error and the table is queryable.
-- The schema contains the required id, title, url, and created_at columns.
+- linkshelf/go.mod has the required module and dependency declarations and the package builds successfully.
+- InitSchema succeeds on a fresh database and on a repeated invocation without duplicate-table errors.
+- The resulting schema contains the required columns and no second schema owner is introduced.
 
 ### backend-store
 Requirement: Implement package-level DB, List, Create, and Delete with ordering, validation, timestamp, and missing-ID behavior.

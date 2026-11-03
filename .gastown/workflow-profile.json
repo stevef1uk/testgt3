@@ -111,5 +111,6 @@
     "python_venv_dir": "off",
     "dev_server_port": 8080
   },
-  "test_plan_reviewed": false
+  "test_plan_reviewed": true,
+  "test_plan_frozen": true
 }
