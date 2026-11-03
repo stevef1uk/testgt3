@@ -1,13 +1,18 @@
-# Test Review — backend API
+# Test Review — active backend phases
 
 ## Summary
-The active backend API requirements have planned test coverage with substantive assertions. The phase verification command `cd linkshelf && go test ./...` passed.
+Phase verify passed. One or more active requirements failed review.
 
 ## Per-requirement results
-### backend-api
-- Test file: `linkshelf/internal/api/handlers_test.go`
+### backend-setup — FAIL
+- Test file: linkshelf/go.mod has no real assertion
 - Verify result: passed
-- Notes: Exercises the HTTP handlers through real requests and validates status codes, response bodies, headers, validation errors, method handling, and CRUD behavior.
+### backend-store — FAIL
+- Test file: linkshelf/internal/store/storetest.go missing
+- Verify result: passed
+### backend-api — FAIL
+- Test file: linkshelf/internal/api/handlerstest.go missing
+- Verify result: passed
 
 ## Overall assessment
-All active-phase planned tests are present and substantive; the phase is ready for QA sign-off.
+FAIL: backend-setup: linkshelf/go.mod has no real assertion | backend-store: linkshelf/internal/store/storetest.go missing | backend-api: linkshelf/internal/api/handlerstest.go missing
