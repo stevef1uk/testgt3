@@ -18,7 +18,7 @@ Test timeout of 30000ms exceeded.
 ```
 Error: locator.click: Test timeout of 30000ms exceeded.
 Call log:
-  - waiting for locator('#links li').filter({ hasText: 'E2E delete 1793697202745' }).getByRole('button', { name: /delete/i })
+  - waiting for locator('#links li').filter({ hasText: 'E2E delete 1793697372013' }).getByRole('button', { name: /delete/i })
 
 ```
 
@@ -41,33 +41,57 @@ Call log:
     - heading "Saved links" [level=2] [ref=e12]
     - list [ref=e13]:
       - listitem [ref=e14]:
-        - link "E2E delete 1793697202745" [ref=e15] [cursor=pointer]:
+        - link "E2E delete 1793697372013" [ref=e15] [cursor=pointer]:
           - /url: https://example.com/e2e-delete
         - generic [ref=e16]: https://example.com/e2e-delete
       - listitem [ref=e17]:
-        - link "E2E add 1793697202626" [ref=e18] [cursor=pointer]:
+        - link "E2E add 1793697371875" [ref=e18] [cursor=pointer]:
           - /url: https://example.com/e2e-add
         - generic [ref=e19]: https://example.com/e2e-add
       - listitem [ref=e20]:
-        - link "E2E persist 1793697193127" [ref=e21] [cursor=pointer]:
+        - link "E2E persist 1793697370531" [ref=e21] [cursor=pointer]:
           - /url: https://example.com/e2e-persist
         - generic [ref=e22]: https://example.com/e2e-persist
       - listitem [ref=e23]:
-        - link "E2E delete 1793697162780" [ref=e24] [cursor=pointer]:
+        - link "E2E delete 1793697340191" [ref=e24] [cursor=pointer]:
           - /url: https://example.com/e2e-delete
         - generic [ref=e25]: https://example.com/e2e-delete
       - listitem [ref=e26]:
-        - link "E2E add 1793697162653" [ref=e27] [cursor=pointer]:
+        - link "E2E add 1793697340064" [ref=e27] [cursor=pointer]:
           - /url: https://example.com/e2e-add
         - generic [ref=e28]: https://example.com/e2e-add
       - listitem [ref=e29]:
-        - link "E2E delete 1793697001289" [ref=e30] [cursor=pointer]:
-          - /url: https://example.com/e2e-delete
-        - generic [ref=e31]: https://example.com/e2e-delete
+        - link "E2E persist 1793697233098" [ref=e30] [cursor=pointer]:
+          - /url: https://example.com/e2e-persist
+        - generic [ref=e31]: https://example.com/e2e-persist
       - listitem [ref=e32]:
-        - link "E2E add 1793697000800" [ref=e33] [cursor=pointer]:
+        - link "E2E delete 1793697202745" [ref=e33] [cursor=pointer]:
+          - /url: https://example.com/e2e-delete
+        - generic [ref=e34]: https://example.com/e2e-delete
+      - listitem [ref=e35]:
+        - link "E2E add 1793697202626" [ref=e36] [cursor=pointer]:
           - /url: https://example.com/e2e-add
-        - generic [ref=e34]: https://example.com/e2e-add
+        - generic [ref=e37]: https://example.com/e2e-add
+      - listitem [ref=e38]:
+        - link "E2E persist 1793697193127" [ref=e39] [cursor=pointer]:
+          - /url: https://example.com/e2e-persist
+        - generic [ref=e40]: https://example.com/e2e-persist
+      - listitem [ref=e41]:
+        - link "E2E delete 1793697162780" [ref=e42] [cursor=pointer]:
+          - /url: https://example.com/e2e-delete
+        - generic [ref=e43]: https://example.com/e2e-delete
+      - listitem [ref=e44]:
+        - link "E2E add 1793697162653" [ref=e45] [cursor=pointer]:
+          - /url: https://example.com/e2e-add
+        - generic [ref=e46]: https://example.com/e2e-add
+      - listitem [ref=e47]:
+        - link "E2E delete 1793697001289" [ref=e48] [cursor=pointer]:
+          - /url: https://example.com/e2e-delete
+        - generic [ref=e49]: https://example.com/e2e-delete
+      - listitem [ref=e50]:
+        - link "E2E add 1793697000800" [ref=e51] [cursor=pointer]:
+          - /url: https://example.com/e2e-add
+        - generic [ref=e52]: https://example.com/e2e-add
 ```
 
 # Test source
