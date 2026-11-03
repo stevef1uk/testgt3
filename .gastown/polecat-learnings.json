@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "stack": "go",
+      "rule": "Avoid in store_test.go: internal/store/schema_test.go:20:51: too many arguments in call to store.InitSchema",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/internal/store/store_test.go",
+      "hits": 1,
+      "updated_at": "2026-11-03T08:54:33Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in store.go: internal/store/store_test.go:26:8: undefined: store.DB",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/internal/store/store.go",
+      "hits": 1,
+      "updated_at": "2026-11-03T08:55:31Z"
+    }
+  ]
+}
