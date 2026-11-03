@@ -14,14 +14,14 @@
 ```
 Error: expect(locator).toBeVisible() failed
 
-Locator: locator('#links a').filter({ hasText: 'Playwright link 1793697804398' }).locator('..').getByRole('button', { name: 'Delete' })
+Locator: locator('#links a').filter({ hasText: 'Playwright link 1793697880821' }).locator('..').getByRole('button', { name: 'Delete' })
 Expected: visible
 Timeout: 5000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 5000ms
-  - waiting for locator('#links a').filter({ hasText: 'Playwright link 1793697804398' }).locator('..').getByRole('button', { name: 'Delete' })
+  - waiting for locator('#links a').filter({ hasText: 'Playwright link 1793697880821' }).locator('..').getByRole('button', { name: 'Delete' })
 
 ```
 
@@ -38,6 +38,18 @@ Call log:
   - region "Saved links":
     - heading "Saved links" [level=2]
     - list:
+      - listitem:
+        - link "Playwright link 1793697880821":
+          - /url: https://example.com/playwright
+        - text: https://example.com/playwright
+      - listitem:
+        - link "Playwright link 1793697860671":
+          - /url: https://example.com/playwright
+        - text: https://example.com/playwright
+      - listitem:
+        - link "Playwright link 1793697854380":
+          - /url: https://example.com/playwright
+        - text: https://example.com/playwright
       - listitem:
         - link "Playwright link 1793697804398":
           - /url: https://example.com/playwright
