@@ -3,13 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Test review lesson: backend-api coverage is missing: TEST_PLAN.md requires linkshelf/internal/api/handlers_test.go, but the file does not...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:59:39Z"
-    },
-    {
-      "stack": "go",
       "rule": "QA lesson: Stage 1 spec compliance failure (frontend-ui): linkshelf/web/index.html (bead te3-pd2) references static assets as /style.css...",
       "source": "qa_rework",
       "hits": 1,
@@ -60,6 +53,14 @@
       "bead_path": "linkshelf/cmd/server/main.go",
       "hits": 2,
       "updated_at": "2026-11-04T15:40:04Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in handlers.go: internal/api/handlers_test.go:90:53: undefined: store.store",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/internal/api/handlers.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T16:41:16Z"
     }
   ]
 }

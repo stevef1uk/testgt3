@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"testing"
+
+	"linkshelf/internal/store"
 )
 
 type testResponseRecorder struct {
@@ -52,7 +55,7 @@ func TestLinksCollectionCRUD(t *testing.T) {
 		if rec.code != http.StatusOK {
 			t.Fatalf("status = %d, want %d", rec.code, http.StatusOK)
 		}
-		var links []Link
+		var links []store.Link
 		if err := json.Unmarshal(rec.body.Bytes(), &links); err != nil {
 			t.Fatalf("decode response: %v", err)
 		}
@@ -69,26 +72,26 @@ func TestLinksCollectionCRUD(t *testing.T) {
 		if rec.code != http.StatusCreated {
 			t.Fatalf("create status = %d, want %d", rec.code, http.StatusCreated)
 		}
-		var created Link
+		var created store.Link
 		if err := json.Unmarshal(rec.body.Bytes(), &created); err != nil {
 			t.Fatalf("decode created link: %v", err)
 		}
-		if created.ID == "" || created.Title != "Go" || created.URL != "https://go.dev" {
+		if created.ID == 0 || created.Title != "Go" || created.URL != "https://go.dev" {
 			t.Fatalf("created link = %#v", created)
 		}
 
 		rec = newTestResponseRecorder()
 		h.ServeHTTP(rec, makeRequest(t, http.MethodGet, "/api/links", ""))
-		var links []Link
+		var links []store.Link
 		if err := json.Unmarshal(rec.body.Bytes(), &links); err != nil {
 			t.Fatalf("decode list: %v", err)
 		}
 		if len(links) != 1 || links[0] != created {
-			t.Fatalf("links = %#v, want %#v", links, []Link{created})
+			t.Fatalf("links = %#v, want %#v", links, []store.Link{created})
 		}
 
 		rec = newTestResponseRecorder()
-		h.ServeHTTP(rec, makeRequest(t, http.MethodDelete, "/api/links/"+created.ID, ""))
+		h.ServeHTTP(rec, makeRequest(t, http.MethodDelete, "/api/links/"+strconv.FormatInt(created.ID, 10), ""))
 		if rec.code != http.StatusNoContent {
 			t.Fatalf("delete status = %d, want %d", rec.code, http.StatusNoContent)
 		}
