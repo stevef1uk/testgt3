@@ -110,5 +110,33 @@
     "validated": true,
     "validated_at": "2026-11-04T12:22:39Z",
     "created_at": "2026-11-04T12:22:39Z"
+  },
+  "5:linkshelf/cmd/server/main.go": {
+    "content": "package main\n\nimport (\n\t\"database/sql\"\n\t\"log\"\n\t\"net/http\"\n\t\"os\"\n\t\"path/filepath\"\n\t\"strings\"\n\n\t\"linkshelf/internal/api\"\n\t\"linkshelf/internal/store\"\n\n\t_ \"github.com/mattn/go-sqlite3\"\n)\n\nfunc newServer() http.Handler {\n\thandler := api.NewHandler()\n\thttp.Handle(\"/api/\", handler)\n\n\thttp.HandleFunc(\"/\", func(w http.ResponseWriter, r *http.Request) {\n\t\tif r.URL.Path == \"/\" \u0026\u0026 r.Method == http.MethodGet {\n\t\t\thttp.ServeFile(w, r, filepath.Join(\"web\", \"index.html\"))\n\t\t\treturn\n\t\t}\n\t\tif strings.HasPrefix(r.URL.Path, \"/static/\") \u0026\u0026\n\t\t\tr.Method == http.MethodGet \u0026\u0026\n\t\t\t!strings.Contains(r.URL.Path, \"..\") {\n\t\t\thttp.ServeFile(w, r, filepath.Join(\"web\", strings.TrimPrefix(r.URL.Path, \"/static/\")))\n\t\t\treturn\n\t\t}\n\t\thttp.NotFound(w, r)\n\t})\n\n\treturn http.DefaultServeMux\n}\n\nfunc main() {\n\tdb, err := sql.Open(\"sqlite3\", \"linkshelf.db\")\n\tif err != nil {\n\t\tlog.Fatalf(\"open database: %v\", err)\n\t}\n\tdefer db.Close()\n\n\tif err := store.InitSchema(db); err != nil {\n\t\tlog.Fatalf(\"initialize schema: %v\", err)\n\t}\n\tstore.DB = db\n\n\taddr := os.Getenv(\"ADDR\")\n\tif addr == \"\" {\n\t\taddr = \":8080\"\n\t}\n\tlog.Printf(\"listening on %s\", addr)\n\tif err := http.ListenAndServe(addr, newServer()); err != nil {\n\t\tlog.Fatalf(\"serve HTTP: %v\", err)\n\t}\n}\n",
+    "md5": "5b269578cf165093a2ab4186a5332a60",
+    "validated": true,
+    "validated_at": "2026-11-04T19:25:22Z",
+    "created_at": "2026-11-04T19:25:22Z"
+  },
+  "5:linkshelf/go.mod": {
+    "content": "module linkshelf\n\ngo 1.26.1\n\nrequire modernc.org/sqlite v1.61.1\n\nrequire (\n\tgithub.com/dustin/go-humanize v1.1.0 // indirect\n\tgithub.com/google/uuid v1.6.0 // indirect\n\tgithub.com/mattn/go-isatty v0.0.24 // indirect\n\tgithub.com/mattn/go-sqlite3 v1.14.22\n\tgithub.com/ncruces/go-strftime v1.1.0 // indirect\n\tgithub.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect\n\tgolang.org/x/sys v0.49.0 // indirect\n\tmodernc.org/libc v1.79.0 // indirect\n\tmodernc.org/mathutil v1.7.1 // indirect\n\tmodernc.org/memory v1.12.1 // indirect\n)\n",
+    "md5": "ced99a123789f4024ee411b45a76f4d6",
+    "validated": true,
+    "validated_at": "2026-11-04T19:25:22Z",
+    "created_at": "2026-11-04T19:25:22Z"
+  },
+  "5:linkshelf/package.json": {
+    "content": "{\n  \"name\": \"playwright-tests\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Playwright E2E tests\",\n  \"scripts\": {\n    \"test\": \"npx playwright test --project=chromium\"\n  },\n  \"devDependencies\": {\n    \"@playwright/test\": \"1.62.1\"\n  }\n}\n",
+    "md5": "e30a1da4a947e9ac00e1af486b7236fb",
+    "validated": true,
+    "validated_at": "2026-11-04T19:25:22Z",
+    "created_at": "2026-11-04T19:25:22Z"
+  },
+  "5:linkshelf/tests/e2e.spec.js": {
+    "content": "const { test, expect } = require('@playwright/test');\n\ntest.describe('LinkShelf', () =\u003e {\n  test('loads the UI and serves its JavaScript asset', async ({ page, request }) =\u003e {\n    await page.goto('/');\n    await expect(page.locator('#links')).toBeAttached();\n\n    const asset = await request.get('/static/app.js');\n    expect(asset.ok()).toBeTruthy();\n    expect(await asset.text()).toContain('fetch');\n  });\n\n  test('adds a link and persists it after a fresh page load', async ({ page }) =\u003e {\n    await page.goto('/');\n\n    const title = `Playwright link ${Date.now()}`;\n    const url = 'https://example.com/e2e-add';\n\n    await page.locator('input').nth(0).fill(title);\n    await page.locator('input').nth(1).fill(url);\n    await page.getByRole('button', { name: 'Add' }).click();\n\n    const link = page.locator('#links').getByRole('link', { name: title });\n    await expect(link).toBeVisible();\n    await expect(link).toHaveAttribute('href', url);\n\n    await page.reload();\n    const persistedLink = page.locator('#links').getByRole('link', { name: title });\n    await expect(persistedLink).toBeVisible();\n    await expect(persistedLink).toHaveAttribute('href', url);\n  });\n\n  test('deletes a link from the list', async ({ page }) =\u003e {\n    await page.goto('/');\n\n    const title = `Playwright delete ${Date.now()}`;\n    await page.locator('input').nth(0).fill(title);\n    await page.locator('input').nth(1).fill('https://example.com/e2e-delete');\n    await page.getByRole('button', { name: /add/i }).click();\n\n    const item = page.locator('#links').getByRole('listitem').filter({ hasText: title });\n    await expect(item).toBeVisible();\n    await item.getByRole('button', { name: /delete/i }).click();\n    await expect(item).toHaveCount(0);\n  });\n});",
+    "md5": "e5678c887d5bc67ab3a6b82372bbf9e8",
+    "validated": true,
+    "validated_at": "2026-11-04T19:25:22Z",
+    "created_at": "2026-11-04T19:25:22Z"
   }
 }
