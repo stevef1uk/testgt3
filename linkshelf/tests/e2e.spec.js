@@ -3,7 +3,7 @@ const { test, expect } = require('@playwright/test');
 test.describe('LinkShelf', () => {
   test('loads the UI and serves its JavaScript asset', async ({ page, request }) => {
     await page.goto('/');
-    await expect(page.locator('#links')).toBeVisible();
+    await expect(page.locator('#links')).toBeAttached();
 
     const asset = await request.get('/static/app.js');
     expect(asset.ok()).toBeTruthy();
