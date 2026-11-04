@@ -20,6 +20,9 @@ codeindex.json
 *.db
 /server
 /linkshelf/server
+# Keep server sources visible even when local excludes ignore "server".
+!/linkshelf/cmd/server/
+!/linkshelf/cmd/server/**
 block:
 node_modules/
 env/
