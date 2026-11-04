@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LinkShelf</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main>
+    <h1>LinkShelf</h1>
+    <p>Save and manage your favorite links.</p>
+    <form>
+      <label>
+        Title
+        <input type="text" name="title" required>
+      </label>
+      <label>
+        URL
+        <input type="url" name="url" required>
+      </label>
+      <button type="submit">Add</button>
+    </form>
+    <ul id="links"></ul>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
