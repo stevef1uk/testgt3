@@ -2,14 +2,6 @@
   "version": 1,
   "entries": [
     {
-      "stack": "typescript",
-      "rule": "Test review lesson: Active e2e-testing verification failed: all 3 Playwright tests failed",
-      "source": "qa_rework",
-      "bead_path": "linkshelf/package.json",
-      "hits": 1,
-      "updated_at": "2026-11-04T12:20:02Z"
-    },
-    {
       "stack": "go",
       "rule": "Avoid in main.go: internal/api/handlers_test.go:46:7: undefined: NewHandler",
       "source": "verify_fix",
@@ -62,6 +54,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T17:20:42Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: Validation did not complete: the required command results were not available after the prior rejected audit commands",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T17:24:08Z"
     }
   ]
 }
