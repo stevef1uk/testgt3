@@ -99,6 +99,7 @@ delivery_phases:
       - linkshelf/web/index.html
       - linkshelf/web/app.js
       - linkshelf/web/style.css
+      - linkshelf/tests/e2e.spec.js
     qa_verify_command: 'test -s linkshelf/web/index.html && test -s linkshelf/web/app.js && test -s linkshelf/web/style.css && node --check linkshelf/web/app.js'
     depends_on:
       - backend-api
