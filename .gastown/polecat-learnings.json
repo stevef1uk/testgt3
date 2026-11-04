@@ -3,13 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "QA lesson: Stage 1 spec compliance failure (frontend-ui): linkshelf/web/index.html (bead te3-pd2) references static assets as /style.css...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T10:07:57Z"
-    },
-    {
-      "stack": "go",
       "rule": "QA lesson: QA exhausted turns without a clean outcome",
       "source": "qa_rework",
       "hits": 1,
@@ -61,6 +54,13 @@
       "bead_path": "linkshelf/internal/api/handlers.go",
       "hits": 1,
       "updated_at": "2026-11-04T16:41:16Z"
+    },
+    {
+      "stack": "go",
+      "rule": "QA lesson: backend-api beads te3-anl and te3-0go FAIL Stage 1 spec compliance",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T17:18:34Z"
     }
   ]
 }
