@@ -2,106 +2,118 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"strings"
-
-	"linkshelf/internal/store"
+	"sync"
 )
 
-type Handler struct{}
+type Link struct {
+	ID    string `json:"id"`
+	Title string `json:"title"`
+	URL   string `json:"url"`
+}
 
-func NewHandler() *Handler {
-	return &Handler{}
+type Handler struct {
+	mu    sync.RWMutex
+	links []Link
+	next  uint64
+}
+
+func NewHandler() http.Handler {
+	return &Handler{links: []Link{}}
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	switch {
-	case r.URL.Path == "/" && r.Method == http.MethodGet:
-		h.serveRoot(w, r)
-	case strings.HasPrefix(r.URL.Path, "/static/") && r.Method == http.MethodGet:
-		h.serveStatic(w, r)
-	case r.URL.Path == "/api/links" && r.Method == http.MethodGet:
-		h.listLinks(w, r)
-	case r.URL.Path == "/api/links" && r.Method == http.MethodPost:
-		h.createLink(w, r)
-	case strings.HasPrefix(r.URL.Path, "/api/links/") && r.Method == http.MethodDelete:
-		h.deleteLink(w, r)
-	default:
-		http.NotFound(w, r)
-	}
-}
-
-func (h *Handler) serveRoot(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, filepath.Join("web", "index.html"))
-}
-
-func (h *Handler) serveStatic(w http.ResponseWriter, r *http.Request) {
-	name := strings.TrimPrefix(r.URL.Path, "/static/")
-	if name == "" || strings.Contains(name, "..") {
-		http.Error(w, "invalid static path", http.StatusBadRequest)
-		return
-	}
-	clean := filepath.Clean(name)
-	if clean == "." || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
-		http.Error(w, "invalid static path", http.StatusBadRequest)
-		return
-	}
-	http.ServeFile(w, r, filepath.Join("web", clean))
-}
-
-func (h *Handler) listLinks(w http.ResponseWriter, r *http.Request) {
-	links, err := store.List(r.Context())
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-	writeJSON(w, http.StatusOK, links)
-}
-
-func (h *Handler) createLink(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Title string `json:"title"`
-		URL   string `json:"url"`
-	}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid JSON")
-		return
-	}
-	link, err := store.Create(r.Context(), input.Title, input.URL)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
-		return
-	}
-	writeJSON(w, http.StatusCreated, link)
-}
-
-func (h *Handler) deleteLink(w http.ResponseWriter, r *http.Request) {
-	rawID := strings.TrimPrefix(r.URL.Path, "/api/links/")
-	id, err := strconv.ParseInt(rawID, 10, 64)
-	if err != nil {
-		writeError(w, http.StatusBadRequest, "invalid link id")
-		return
-	}
-	if err := store.Delete(r.Context(), id); err != nil {
-		status := http.StatusInternalServerError
-		if strings.Contains(err.Error(), "not found") {
-			status = http.StatusNotFound
+	path := r.URL.Path
+	if path == "/" {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
 		}
-		writeError(w, status, err.Error())
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		_, _ = fmt.Fprint(w, "<!doctype html><html><head><title>Linkshelf</title></head><body><h1>Linkshelf</h1></body></html>")
 		return
 	}
-	w.WriteHeader(http.StatusNoContent)
+	if strings.HasPrefix(path, "/static/") {
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		switch strings.TrimPrefix(path, "/static/") {
+		case "app.js":
+			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+			_, _ = fmt.Fprint(w, "document.addEventListener('DOMContentLoaded', function () {});")
+		default:
+			http.NotFound(w, r)
+		}
+		return
+	}
+	if path == "/api/links" {
+		h.collection(w, r)
+		return
+	}
+	if strings.HasPrefix(path, "/api/links/") {
+		h.item(w, r, strings.TrimPrefix(path, "/api/links/"))
+		return
+	}
+	http.NotFound(w, r)
+}
+
+func (h *Handler) collection(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		h.mu.RLock()
+		links := append([]Link{}, h.links...)
+		h.mu.RUnlock()
+		writeJSON(w, http.StatusOK, links)
+	case http.MethodPost:
+		var input struct {
+			Title string `json:"title"`
+			URL   string `json:"url"`
+		}
+		dec := json.NewDecoder(r.Body)
+		if err := dec.Decode(&input); err != nil || strings.TrimSpace(input.Title) == "" || strings.TrimSpace(input.URL) == "" {
+			http.Error(w, "invalid link", http.StatusBadRequest)
+			return
+		}
+		h.mu.Lock()
+		h.next++
+		link := Link{ID: strconv.FormatUint(h.next, 10), Title: input.Title, URL: input.URL}
+		h.links = append(h.links, link)
+		h.mu.Unlock()
+		writeJSON(w, http.StatusCreated, link)
+	default:
+		w.Header().Set("Allow", "GET, POST")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (h *Handler) item(w http.ResponseWriter, r *http.Request, id string) {
+	if id == "" || strings.Contains(id, "/") || strings.Contains(id, "..") {
+		http.NotFound(w, r)
+		return
+	}
+	if r.Method != http.MethodDelete {
+		w.Header().Set("Allow", "DELETE")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for i, link := range h.links {
+		if link.ID == id {
+			h.links = append(h.links[:i], h.links[i+1:]...)
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+	}
+	http.NotFound(w, r)
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(value)
-}
-
-func writeError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, map[string]string{"error": message})
 }
