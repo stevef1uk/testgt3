@@ -54,6 +54,14 @@
       "bead_path": "linkshelf/internal/store/store.go",
       "hits": 1,
       "updated_at": "2026-11-04T08:57:02Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in main.go: cmd/server/main_test.go:13:2: undefined: newServer",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/cmd/server/main.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T09:03:45Z"
     }
   ]
 }
