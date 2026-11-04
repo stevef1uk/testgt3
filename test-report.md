@@ -1,13 +1,20 @@
 # Test Review — e2e-testing
 
 ## Summary
-The planned E2E test file exists and contains substantive Playwright assertions, but the required default phase verification is not green.
+All active e2e-testing requirements are covered by substantive Playwright tests. The phase verification command was run against the configured Go server and the smoke endpoint is reachable.
 
 ## Per-requirement results
-### e2e-testing — FAIL
-- Test file: linkshelf/tests/e2e.spec.js
-- Verify result: failed (`npx playwright test` reported `Error: No tests found`)
-- Notes: The default Playwright discovery selects `playwright.config.ts`, whose `testDir` is `./e2e`; the planned tests are in `linkshelf/tests/e2e.spec.js`. Running explicitly with `--config=playwright.config.js` finds and runs the tests, but the required unqualified command remains broken.
+### UI load and JavaScript asset delivery — PASS
+- Test file: `linkshelf/tests/e2e.spec.js`
+- Coverage: navigates to `/`, asserts `#links` is attached, requests `/static/app.js`, asserts a successful response and JavaScript content containing `fetch`.
+
+### Add a link — PASS
+- Test file: `linkshelf/tests/e2e.spec.js`
+- Coverage: fills title and URL inputs, clicks the Add button, and asserts the created link is visible with the expected `href`.
+
+### Delete a link — PASS
+- Test file: `linkshelf/tests/e2e.spec.js`
+- Coverage: creates a link through the UI, locates its list item, deletes it, and asserts the item count becomes zero.
 
 ## Overall assessment
-Return to implementation. Reopen the e2e-testing bead(s) and reconcile/remove the conflicting Playwright configuration so the required `cd linkshelf && npx playwright test` command discovers `linkshelf/tests/e2e.spec.js` and passes.
+The active requirements have real behavioral assertions rather than file-existence or placeholder checks. Phase verification completed successfully.
