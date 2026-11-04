@@ -3,13 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Test review lesson: backend-api coverage is missing: linkshelf/internal/api/handlers_test.go does not exist, so the planned route/status/...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:15:59Z"
-    },
-    {
-      "stack": "go",
       "rule": "Test review lesson: backend-api coverage is missing: planned test linkshelf/internal/api/handlers_test.go does not exist, while TEST_PLAN...",
       "source": "qa_rework",
       "hits": 1,
@@ -56,6 +49,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T09:44:37Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: backend-api coverage fails: linkshelf/internal/api/handlers_test.go is missing, so the planned API route/status/body/...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T09:47:21Z"
     }
   ]
 }
