@@ -78,6 +78,11 @@ func (h *Handler) collection(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "invalid link", http.StatusBadRequest)
 			return
 		}
+		var extra any
+		if err := dec.Decode(&extra); err == nil {
+			http.Error(w, "invalid link", http.StatusBadRequest)
+			return
+		}
 		h.mu.Lock()
 		h.next++
 		link := Link{ID: strconv.FormatUint(h.next, 10), Title: input.Title, URL: input.URL}
