@@ -10,7 +10,7 @@ test.describe('LinkShelf', () => {
     expect(await asset.text()).toContain('fetch');
   });
 
-  test('adds a link and displays it in the links list', async ({ page }) => {
+  test('adds a link and persists it after a fresh page load', async ({ page }) => {
     await page.goto('/');
 
     const title = `Playwright link ${Date.now()}`;
@@ -23,6 +23,11 @@ test.describe('LinkShelf', () => {
     const link = page.locator('#links').getByRole('link', { name: title });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', url);
+
+    await page.reload();
+    const persistedLink = page.locator('#links').getByRole('link', { name: title });
+    await expect(persistedLink).toBeVisible();
+    await expect(persistedLink).toHaveAttribute('href', url);
   });
 
   test('deletes a link from the list', async ({ page }) => {
