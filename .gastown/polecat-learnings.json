@@ -3,14 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Avoid in main.go: cmd/server/main_test.go:13:2: undefined: newServer",
-      "source": "verify_fix",
-      "bead_path": "linkshelf/cmd/server/main.go",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:03:45Z"
-    },
-    {
-      "stack": "go",
       "rule": "Test review lesson: backend-api is not covered: planned linkshelf/internal/api/handlers_test.go is missing, while backend-setup and backe...",
       "source": "qa_rework",
       "hits": 1,
@@ -57,6 +49,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T09:39:45Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: backend-api coverage is missing: planned linkshelf/internal/api/handlers_test.go does not exist, so the specified rou...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T09:43:06Z"
     }
   ]
 }
