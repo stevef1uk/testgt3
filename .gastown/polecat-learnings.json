@@ -3,13 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Test review lesson: Unable to complete the required repository inspection because shell command results were not returned",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:48:31Z"
-    },
-    {
-      "stack": "go",
       "rule": "Test review lesson: Unable to obtain shell command output, so TEST_PLAN.md, SPEC.md, architecture.md, test coverage, and the phase verifi...",
       "source": "qa_rework",
       "hits": 1,
@@ -56,6 +49,14 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T10:11:10Z"
+    },
+    {
+      "stack": "typescript",
+      "rule": "Test review lesson: Active e2e-testing verification failed: all 3 Playwright tests failed",
+      "source": "qa_rework",
+      "bead_path": "linkshelf/package.json",
+      "hits": 1,
+      "updated_at": "2026-11-04T12:20:02Z"
     }
   ]
 }

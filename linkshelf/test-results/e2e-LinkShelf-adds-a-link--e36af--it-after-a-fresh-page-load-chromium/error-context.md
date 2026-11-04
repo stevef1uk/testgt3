@@ -6,7 +6,7 @@
 
 # Test info
 
-- Name: e2e.spec.js >> LinkShelf >> adds a link and displays it in the links list
+- Name: e2e.spec.js >> LinkShelf >> adds a link and persists it after a fresh page load
 - Location: tests/e2e.spec.js:13:3
 
 # Error details
@@ -14,14 +14,14 @@
 ```
 Error: expect(locator).toBeVisible() failed
 
-Locator: locator('#links').getByRole('link', { name: 'Playwright link 1793794646518' })
+Locator: locator('#links').getByRole('link', { name: 'Playwright link 1793794785467' })
 Expected: visible
 Timeout: 5000ms
 Error: element(s) not found
 
 Call log:
   - Expect "toBeVisible" with timeout 5000ms
-  - waiting for locator('#links').getByRole('link', { name: 'Playwright link 1793794646518' })
+  - waiting for locator('#links').getByRole('link', { name: 'Playwright link 1793794785467' })
 
 ```
 
@@ -52,7 +52,7 @@ Call log:
   10 |     expect(await asset.text()).toContain('fetch');
   11 |   });
   12 | 
-  13 |   test('adds a link and displays it in the links list', async ({ page }) => {
+  13 |   test('adds a link and persists it after a fresh page load', async ({ page }) => {
   14 |     await page.goto('/');
   15 | 
   16 |     const title = `Playwright link ${Date.now()}`;
@@ -66,20 +66,25 @@ Call log:
 > 24 |     await expect(link).toBeVisible();
      |                        ^ Error: expect(locator).toBeVisible() failed
   25 |     await expect(link).toHaveAttribute('href', url);
-  26 |   });
-  27 | 
-  28 |   test('deletes a link from the list', async ({ page }) => {
-  29 |     await page.goto('/');
-  30 | 
-  31 |     const title = `Playwright delete ${Date.now()}`;
-  32 |     await page.locator('input').nth(0).fill(title);
-  33 |     await page.locator('input').nth(1).fill('https://example.com/e2e-delete');
-  34 |     await page.getByRole('button', { name: /add/i }).click();
+  26 | 
+  27 |     await page.reload();
+  28 |     const persistedLink = page.locator('#links').getByRole('link', { name: title });
+  29 |     await expect(persistedLink).toBeVisible();
+  30 |     await expect(persistedLink).toHaveAttribute('href', url);
+  31 |   });
+  32 | 
+  33 |   test('deletes a link from the list', async ({ page }) => {
+  34 |     await page.goto('/');
   35 | 
-  36 |     const item = page.locator('#links').getByRole('listitem').filter({ hasText: title });
-  37 |     await expect(item).toBeVisible();
-  38 |     await item.getByRole('button', { name: /delete/i }).click();
-  39 |     await expect(item).toHaveCount(0);
-  40 |   });
-  41 | });
+  36 |     const title = `Playwright delete ${Date.now()}`;
+  37 |     await page.locator('input').nth(0).fill(title);
+  38 |     await page.locator('input').nth(1).fill('https://example.com/e2e-delete');
+  39 |     await page.getByRole('button', { name: /add/i }).click();
+  40 | 
+  41 |     const item = page.locator('#links').getByRole('listitem').filter({ hasText: title });
+  42 |     await expect(item).toBeVisible();
+  43 |     await item.getByRole('button', { name: /delete/i }).click();
+  44 |     await expect(item).toHaveCount(0);
+  45 |   });
+  46 | });
 ```
