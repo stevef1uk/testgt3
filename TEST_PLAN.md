@@ -24,11 +24,15 @@ Test file: linkshelf/internal/store/store_test.go
 Bead ID: 
 Phase: backend-store
 Scenarios:
-- Initialize an in-memory SQLite database and verify the links table can be used.
-- Call initialization twice and pass a nil database.
+- Create an in-memory SQLite database, initialize the schema, and verify List returns a non-nil empty slice before any links exist.
+- Create two valid links and verify each receives a distinct positive ID and a non-zero CreatedAt timestamp.
+- List the created links and verify results are ordered newest first, then delete one existing link and list again to verify only the remaining link is returned.
+- Attempt Create with an empty title, empty URL, and whitespace-only title or URL, and attempt Delete with an unknown ID.
 Assertions:
-- The table has the id, title, url, description, and created_at columns with the required non-null/default behavior.
-- Repeated initialization is safe and nil input returns an error rather than panicking.
+- Create persists title, URL, and description exactly and supplies a positive ID and non-zero timestamp.
+- List returns all persisted links in descending creation/ID order and returns an empty JSON-safe slice when there are none.
+- Delete removes an existing link and returns an error for a missing ID without removing other records.
+- Invalid Create inputs are rejected and do not add rows.
 
 ### backend-api
 Requirement: Expose HTTP operations for listing, creating, and deleting links and reject malformed or unsupported requests.
