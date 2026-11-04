@@ -3,91 +3,83 @@
 ## Requirements → tests
 
 ### backend-setup
-Requirement: Deliver `linkshelf/go.mod` and `linkshelf/internal/store/schema.go`; declare module linkshelf with Go 1.22 and SQLite, define the exact Link fields/JSON names, and make InitSchema create the links table idempotently.
+Requirement: Establish the backend project and runnable test configuration required by the backend phases.
 Level: unit
 Test file: linkshelf/internal/store/schema_test.go
 Bead ID: te3-6tp
 Phase: backend-setup
 Scenarios:
-- Open an isolated in-memory SQLite database and call InitSchema twice.
-- Inspect the Link JSON behavior and verify the links table exists after initialization.
-- Run the backend setup verification so the module and schema package compile.
+- Build the backend from a clean checkout.
+- Run the configured test command with no application data present.
 Assertions:
-- InitSchema succeeds on both calls without duplicating or corrupting the table.
-- Link fields and JSON names are id, title, url, and created_at.
-- The schema test and `go test ./...` pass with the declared module dependency.
+- Setup succeeds without missing dependencies or packages.
+- The test command exits successfully.
 
 ### backend-store
-Requirement: Implement the persistent store and its domain operations defined by the specification.
+Requirement: Provide the specified persistent store behavior and store API.
 Level: unit
 Test file: linkshelf/internal/store/store_test.go
 Bead ID:
 Phase: backend-store
 Scenarios:
-- Create, retrieve, update, and delete a valid record.
-- Query an empty store and request a missing record.
-- Reject invalid input without corrupting existing data.
+- Create, read, update, and delete each specified domain record.
+- Exercise empty-store, missing-record, duplicate, and invalid-input cases.
 Assertions:
-- Successful operations round-trip all required fields.
-- Missing data returns the specified not-found result.
-- Invalid operations return the specified error and preserve state.
+- Valid operations persist and return the specified values.
+- Missing and invalid operations return the specified errors without corrupting data.
+- Repeated reads and writes preserve the documented invariants.
 
 ### backend-api
-Requirement: Expose the specified HTTP API routes and connect them to the store.
+Requirement: Expose the documented HTTP routes and connect them to the store.
 Level: integration
 Test file: linkshelf/internal/api/handlers_test.go
 Bead ID:
 Phase: backend-api
 Scenarios:
-- Exercise every documented route with valid input.
-- Exercise malformed payloads, unknown identifiers, unsupported methods, and unknown routes.
-- Verify JSON response headers, status codes, and response bodies.
+- Call every documented route with valid requests.
+- Call routes with malformed payloads, unknown identifiers, unsupported methods, and missing resources.
 Assertions:
-- Each route returns the documented status and schema.
-- Successful mutations are observable through subsequent reads.
-- Client errors do not panic or mutate state.
-
-
+- Status codes, response bodies, headers, and content types match the route table.
+- Successful requests invoke the store and return persisted results.
+- Invalid requests return documented errors and do not mutate state.
 
 ### frontend-ui
-Requirement: Deliver the required bookmark UI markup, browser CRUD behavior, and readable styling.
+Requirement: Implement the specified user-facing UI and its backend interactions.
 Level: ui
-Test file: linkshelf/tests/e2e.spec.js
+Test file: linkshelf/web/app_test.js
 Bead ID:
 Phase: frontend-ui
 Scenarios:
-- Load the page and verify title input, URL input, Add button, and links list are present.
-- Load existing links, add a valid link, and delete it through the browser.
-- Verify the client refreshes the list after loading and after each mutation.
+- Load the UI and complete each documented primary user flow.
+- Verify loading, empty, success, validation-error, and server-error states.
 Assertions:
-- The required controls and `#links` list are visible.
-- Added links render with their title and URL, and deleted links disappear.
-- Browser requests use the documented list, create, and delete API operations.
+- Required controls, labels, data, and navigation are visible and usable.
+- User actions issue the documented API requests and render their results.
+- Errors are surfaced without losing valid user input or showing stale success state.
 
 ### e2e-testing
-Requirement: Verify the complete user workflow across the running frontend and backend.
+Requirement: Verify the complete documented flow across the running backend and UI.
 Level: ui
 Test file: linkshelf/tests/e2e.spec.js
 Bead ID:
 Phase: e2e-testing
 Scenarios:
-- Start the application, load the UI, and complete the principal end-to-end workflow.
-- Refresh after a mutation and confirm persisted state remains visible.
-- Cover a failed API response in the browser.
+- Start the application and execute the principal end-to-end flow in a clean environment.
+- Repeat the flow with invalid input and an unavailable or failing backend response.
 Assertions:
-- The workflow succeeds across real HTTP boundaries.
-- Persisted data survives navigation or reload.
-- The UI shows a recoverable error and remains usable.
+- The browser can complete the happy path against the real server.
+- UI and API data agree after each mutation.
+- Failure states are deterministic and actionable.
 
 ### smoke-test
-Requirement: Recheck the complete SPEC definition of done, including Go tests, server startup, UI CRUD, and Playwright execution.
+Requirement: Confirm the delivered application starts and its documented critical path remains operational.
 Level: integration
 Test file: linkshelf/tests/e2e.spec.js
 Bead ID:
 Phase: smoke-test
 Scenarios:
-- Run the documented smoke command against a clean application.
-- Check the primary documented endpoint and a minimal UI/backend connection.
+- Run the delivery smoke command against a clean build.
+- Exercise the critical route and one representative UI/API path.
 Assertions:
-- The command exits successfully.
-- The application responds on the configured interface with the documented result.
+- The application starts within the configured command and exits/serves as documented.
+- Critical endpoints respond with the documented status and shape.
