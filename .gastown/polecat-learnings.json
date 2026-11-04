@@ -3,14 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Avoid in store.go: internal/store/store_test.go:23:2: undefined: DB",
-      "source": "verify_fix",
-      "bead_path": "linkshelf/internal/store/store.go",
-      "hits": 1,
-      "updated_at": "2026-11-04T08:57:01Z"
-    },
-    {
-      "stack": "go",
       "rule": "Store timestamps are TEXT in SQLite; scan into string and parse RFC3339 rather than scanning directly into time.Time.",
       "source": "agent",
       "bead_path": "linkshelf/internal/store/store.go",
@@ -59,6 +51,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T09:30:21Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: Active backend-api coverage is missing: linkshelf/internal/api/handlers_test.go does not exist",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T09:38:02Z"
     }
   ]
 }
