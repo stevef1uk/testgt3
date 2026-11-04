@@ -1,23 +1,24 @@
-# Test Review — active backend phases
+# Test Review
 
 ## Summary
-Phase verify passed, but the active backend-api requirement is not covered because its planned test file is missing.
+Issues found; phase verify or coverage checks failed.
 
 ## Per-requirement results
 ### backend-setup — PASS
+- Phase: backend-setup
 - Test file: linkshelf/internal/store/schema_test.go
-- Verify result: passed
-- Notes: Contains substantive assertions for the Link model and schema initialization behavior.
-
+- Notes: Real test assertions found.
 ### backend-store — PASS
+- Phase: backend-store
 - Test file: linkshelf/internal/store/store_test.go
-- Verify result: passed
-- Notes: Contains substantive CRUD, ordering, timestamp, deletion, and validation assertions.
-
+- Notes: Real test assertions found.
 ### backend-api — FAIL
+- Phase: backend-api
 - Test file: linkshelf/internal/api/handlers_test.go
-- Verify result: not applicable; file missing
-- Notes: Planned integration coverage for routes, methods, status codes, response bodies, malformed input, missing records, invalid parameters, and static traversal is absent.
+- Notes: backend-api: missing linkshelf/internal/api/handlers_test.go
 
 ## Overall assessment
-Failure. Reopen the backend-api implementation bead and add linkshelf/internal/api/handlers_test.go with real integration assertions, then rerun `cd linkshelf && go test ./...`.
+FAIL
+
+Issues:
+- backend-api: missing linkshelf/internal/api/handlers_test.go
