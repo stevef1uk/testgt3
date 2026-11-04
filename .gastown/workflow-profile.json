@@ -7,17 +7,20 @@
     "layout_root": "linkshelf",
     "bead_title_contains": "Implement linkshelf/",
     "unittest_module": "",
-    "qa_verify_command": "cd linkshelf && go mod tidy && go test ./... && cd .. && cd linkshelf && npx playwright test",
+    "qa_verify_command": "cd linkshelf && go mod tidy && go test ./... && npx playwright test",
     "test_runner": "go",
     "required_files": [
       "linkshelf/go.mod",
+      "linkshelf/cmd/server/main.go",
       "linkshelf/internal/store/schema.go",
       "linkshelf/internal/store/store.go",
       "linkshelf/internal/api/handlers.go",
-      "linkshelf/cmd/server/main.go",
       "linkshelf/web/index.html",
       "linkshelf/web/app.js",
-      "linkshelf/web/style.css"
+      "linkshelf/web/style.css",
+      "linkshelf/package.json",
+      "linkshelf/playwright.config.js",
+      "linkshelf/tests/e2e.spec.js"
     ],
     "delivery_phases": [
       {
@@ -25,10 +28,22 @@
         "title": "backend-setup",
         "required_files": [
           "linkshelf/go.mod",
-          "linkshelf/internal/store/schema.go",
+          "linkshelf/internal/store/schema.go"
+        ],
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "spec_focus": "backend-setup"
+      },
+      {
+        "id": "backend-store",
+        "title": "backend-store",
+        "required_files": [
           "linkshelf/internal/store/store.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./..."
+        "qa_verify_command": "cd linkshelf && go test ./...",
+        "depends_on": [
+          "backend-setup"
+        ],
+        "spec_focus": "backend-store"
       },
       {
         "id": "backend-api",
@@ -37,10 +52,11 @@
           "linkshelf/internal/api/handlers.go",
           "linkshelf/cmd/server/main.go"
         ],
-        "qa_verify_command": "cd linkshelf && go build ./...",
+        "qa_verify_command": "cd linkshelf && go test ./...",
         "depends_on": [
-          "backend-setup"
-        ]
+          "backend-store"
+        ],
+        "spec_focus": "backend-api"
       },
       {
         "id": "frontend-ui",
@@ -50,12 +66,43 @@
           "linkshelf/web/app.js",
           "linkshelf/web/style.css"
         ],
-        "qa_verify_command": "cd linkshelf && echo 'verify ok (no automated tests for this phase)'",
+        "qa_verify_command": "test -s linkshelf/web/index.html && test -s linkshelf/web/app.js && test -s linkshelf/web/style.css && node --check linkshelf/web/app.js",
         "depends_on": [
           "backend-api"
-        ]
+        ],
+        "spec_focus": "frontend-ui"
+      },
+      {
+        "id": "e2e-testing",
+        "title": "e2e-testing",
+        "required_files": [
+          "linkshelf/package.json",
+          "linkshelf/playwright.config.js",
+          "linkshelf/tests/e2e.spec.js"
+        ],
+        "qa_verify_command": "cd linkshelf && npx playwright test",
+        "depends_on": [
+          "frontend-ui"
+        ],
+        "spec_focus": "e2e-testing"
+      },
+      {
+        "id": "smoke-test",
+        "title": "smoke-test",
+        "required_files": [
+          "linkshelf/go.mod",
+          "linkshelf/cmd/server/main.go",
+          "linkshelf/package.json",
+          "linkshelf/tests/e2e.spec.js"
+        ],
+        "qa_verify_command": "cd linkshelf && go mod tidy && go test ./... && npx playwright test",
+        "depends_on": [
+          "e2e-testing"
+        ],
+        "spec_focus": "smoke-test"
       }
     ],
+    "explicit_delivery_contract": true,
     "active_phase_id": "backend-setup",
     "spec_summary": "Link Shelf is a simple Go bookmark application with a SQLite backend and a vanilla HTML/JS frontend. The project is modularized with internal packages for store and api, and a cmd/server for the entry point. The goal is to implement a minimal CRUD interface for links, served on port 8080 with static files for the UI. Success is defined by passing `go test ./...` and `npx playwright test`.",
     "min_architecture_bytes": 2500,
