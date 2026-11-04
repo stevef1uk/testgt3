@@ -30,6 +30,14 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-03T09:15:14Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in schema.go: internal/store/schema_test.go:46:14: cannot use \"2024-01-02T03:04:05Z\" (untyped string constant) as time.Time value i...",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/internal/store/schema.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T08:51:01Z"
     }
   ]
 }

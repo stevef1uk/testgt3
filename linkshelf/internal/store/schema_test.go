@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"testing"
+	"time"
 )
 
 type schemaTestDriver struct{}
@@ -29,6 +30,9 @@ func (schemaTestStmt) NumInput() int { return 0 }
 func (schemaTestStmt) Exec([]driver.Value) (driver.Result, error) {
 	return driver.RowsAffected(0), nil
 }
+func (schemaTestStmt) Query([]driver.Value) (driver.Rows, error) {
+	return nil, nil
+}
 
 type schemaTestTx struct{}
 
@@ -40,7 +44,7 @@ func TestLinkModel(t *testing.T) {
 		ID:        7,
 		Title:     "Example",
 		URL:       "https://example.com",
-		CreatedAt: "2024-01-02T03:04:05Z",
+		CreatedAt: time.Date(2024, time.January, 2, 3, 4, 5, 0, time.UTC),
 	}
 	if link.ID != 7 || link.Title != "Example" || link.URL != "https://example.com" {
 		t.Fatalf("unexpected link: %+v", link)
