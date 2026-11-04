@@ -3,14 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Avoid in main.go: --- FAIL: TestServerHandlerIsReachable (0.00s)",
-      "source": "verify_fix",
-      "bead_path": "linkshelf/cmd/server/main.go",
-      "hits": 1,
-      "updated_at": "2026-11-04T15:30:29Z"
-    },
-    {
-      "stack": "go",
       "rule": "Avoid in main.go: internal/api/handlers_test.go:55:15: undefined: Link",
       "source": "verify_fix",
       "bead_path": "linkshelf/cmd/server/main.go",
@@ -60,6 +52,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T18:06:57Z"
+    },
+    {
+      "stack": "go",
+      "rule": "QA lesson: backend-api fails Stage 1 (spec compliance): handlers.go never calls store.List/Create/Delete — it implements its own in-mem...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T18:22:47Z"
     }
   ]
 }
