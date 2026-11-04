@@ -1,25 +1,13 @@
-# Test Review — active phases
+# Test Review — e2e-testing
 
 ## Summary
-All active-phase planned tests were reviewed; phase verify passed (exit 0).
+All planned active-phase end-to-end tests pass; phase verify `cd linkshelf && npx playwright test` passed.
 
 ## Per-requirement results
-### backend-setup — PASS
-- Phase: backend-setup
-- Test file(s): linkshelf/internal/store/schema_test.go
-- Notes: Files contain substantive test code.
-### backend-store — PASS
-- Phase: backend-store
-- Test file(s): linkshelf/internal/store/store_test.go
-- Notes: Files contain substantive test code.
-### backend-api — PASS
-- Phase: backend-api
-- Test file(s): linkshelf/internal/api/handlers_test.go
-- Notes: Files contain substantive test code.
-### frontend-ui — FAIL
-- Phase: frontend-ui
-- Test file(s): (none)
-- Notes: No resolvable planned test path found.
+### Active e2e requirements
+- Test file: `linkshelf/tests/e2e.spec.js`
+- Verify result: passed (`npx playwright test`; all discovered tests passed)
+- Notes: The suite loads the UI and verifies the JavaScript asset, adds a link through the visible form and verifies it persists after a fresh page load, and deletes a link through the visible UI. Assertions cover the rendered list, link visibility and href, persistence, and removal.
 
 ## Overall assessment
-FAIL — active-phase coverage or verification is incomplete.
+The active-phase requirements are covered by a substantive Playwright suite with real browser/API assertions and no stub markers or empty test bodies. Phase verification is green.
