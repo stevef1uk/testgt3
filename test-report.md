@@ -1,18 +1,30 @@
 # Test Review — e2e-testing
 
 ## Summary
-No tests pass; phase verify failed. The configured Playwright suite ran three tests and all three failed.
+Phase verification failed: all three configured Playwright tests failed against the served application.
 
 ## Per-requirement results
-
 ### e2e-testing — FAIL
-- Test file: `linkshelf/tests/e2e.spec.js`
-- Verify result: failed (`cd linkshelf && npx playwright test`; 3 failed)
-- Notes:
-  - `loads the UI and serves its JavaScript asset` failed because `/static/app.js` returned `document.addEventListener('DOMContentLoaded', function () {});`, which does not contain the required `fetch` behavior.
-  - `adds a link and displays it in the links list` failed because the submitted link never appeared.
-  - `deletes a link from the list` failed because the submitted list item never appeared.
-  - The test file contains substantive Playwright assertions, so this is an implementation/verification failure rather than a stub.
+- Test file: linkshelf/tests/e2e.spec.js
+- Verify result: failed; 3 tests failed.
+- Notes: The static-asset assertion expected `fetch` but `/static/app.js` returned `document.addEventListener('DOMContentLoaded', function () {});`. The add and delete UI flows could not find the submitted link because the served frontend does not implement the required API-backed behavior.
+
+### frontend-ui — FAIL
+- Test file: linkshelf/tests/e2e.spec.js
+- Verify result: failed; add and delete tests failed.
+- Notes: The planned browser assertions are substantive, but the delivered frontend behavior does not satisfy them.
+
+### backend-setup — NOT RE-RUN
+- Test file: linkshelf/internal/store/schema_test.go
+- Notes: Active-phase Playwright verification is the blocking result.
+
+### backend-store — NOT RE-RUN
+- Test file: linkshelf/internal/store/store_test.go
+- Notes: Active-phase Playwright verification is the blocking result.
+
+### backend-api — NOT RE-RUN
+- Test file: linkshelf/internal/api/handlers_test.go
+- Notes: Active-phase Playwright verification is the blocking result.
 
 ## Overall assessment
-FAIL. Reopen the e2e-testing implementation bead `te3-aio` and fix the application frontend behavior so `linkshelf/web/app.js` performs the documented load/create/delete API flows and renders results. Then rerun `cd linkshelf && npx playwright test`. The failing test path is `linkshelf/tests/e2e.spec.js`.
+Failure. Reopen the implementation bead owning linkshelf/web/app.js and frontend UI behavior, and the test bead te3-aio only if the test artifact itself must be changed. Fix the frontend implementation so it performs the specified fetch/list/create/delete flows, then rerun `cd linkshelf && npx playwright test`.
