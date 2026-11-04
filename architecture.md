@@ -55,7 +55,8 @@ Deliver `linkshelf/internal/store/store.go`. The store uses package-level DB and
 Deliver `linkshelf/internal/api/handlers.go` and `linkshelf/cmd/server/main.go`. Handlers use only store.List, store.Create, and store.Delete and implement the exact root, static, list, create, and delete routes, statuses, JSON bodies, and traversal rejection. The entrypoint opens linkshelf.db in the current working directory when run from linkshelf/, initializes the schema, assigns store.DB, registers http.DefaultServeMux, logs listening on :8080, and listens on :8080. Verify with `cd linkshelf && go test ./...`.
 
 ### frontend-ui
-Deliver `linkshelf/web/index.html`, `linkshelf/web/app.js`, and `linkshelf/web/style.css`. The page includes title and URL inputs, an Add button, and `<ul id="links"></ul>`. The client loads links on page load, renders them, posts new links, deletes them, and refreshes after each change. The stylesheet is small, readable, and framework-free. Verify all three files are non-empty and run `node --check linkshelf/web/app.js`.
+This phase declares `linkshelf/tests/e2e.spec.js` as the conventional browser-UI test companion for the delivered markup, client behavior, and styles; it is included in the phase contract so UI work has an explicit test artifact.
+Deliver `linkshelf/web/index.html`, `linkshelf/web/app.js`, and `linkshelf/web/style.css`. The page includes title and URL inputs, an Add button, and `<ul id="links"></ul>`. The client loads links on page load, renders them, posts new links, deletes them, and refreshes after each change. The stylesheet is small, readable, and framework-free. Verify all three files are non-empty and run `node --check linkshelf/web/app.js && node --check linkshelf/tests/e2e.spec.js`.
 
 ### e2e-testing
 Deliver `linkshelf/package.json`, `linkshelf/playwright.config.js`, and `linkshelf/tests/e2e.spec.js`. The Playwright harness targets the running application and verifies UI loading, static file serving, adding a link, displaying it, and deleting it. Verify with `cd linkshelf && npx playwright test`.
@@ -98,7 +99,7 @@ delivery_phases:
       - linkshelf/web/index.html
       - linkshelf/web/app.js
       - linkshelf/web/style.css
-    qa_verify_command: 'test -s linkshelf/web/index.html && test -s linkshelf/web/app.js && test -s linkshelf/web/style.css && node --check linkshelf/web/app.js'
+    qa_verify_command: 'test -s linkshelf/web/index.html && test -s linkshelf/web/app.js && test -s linkshelf/web/style.css && node --check linkshelf/web/app.js && node --check linkshelf/tests/e2e.spec.js'
     depends_on:
       - backend-api
   - id: e2e-testing
