@@ -18,10 +18,12 @@ Link Shelf is the SPEC-defined minimal bookmark CRUD service: a Go 1.22 backend,
 
 ## Module / bead ownership
 `linkshelf/internal/store/schema.go` owns the Link struct and InitSchema function and owns all links-table DDL. `linkshelf/internal/store/store.go` owns the package-level DB plus List, Create, and Delete; it must not duplicate schema DDL. `linkshelf/internal/api/handlers.go` owns HTTP registration and request/response behavior and calls only the store API. `linkshelf/cmd/server/main.go` owns process startup, SQLite opening, schema initialization, store assignment, static registration, and listening. Frontend files own only browser presentation and fetch behavior; Playwright files own only browser orchestration.
+The implementation plan must create one dedicated schema implementation bead for `linkshelf/internal/store/schema.go` (separate from the `linkshelf/cmd/server/main.go` and `linkshelf/internal/api/handlers.go` beads). That bead owns the schema source and its conventional companion test `linkshelf/internal/store/schema_test.go`; the planner must record the real bead ID before test-plan validation. No existing bead is to be assumed to own this path unless its description explicitly names `linkshelf/internal/store/schema.go`.
 
 | File | Owns | Must not define |
 |---|---|---|
 | `linkshelf/internal/store/schema.go` | Link and InitSchema | HTTP handlers or CRUD queries |
+| `linkshelf/internal/store/schema_test.go` | schema initialization tests | production schema implementation or HTTP handlers |
 | `linkshelf/internal/store/store.go` | DB, List, Create, Delete | schema DDL or route registration |
 | `linkshelf/internal/api/handlers.go` | route handlers and JSON/status contracts | database initialization |
 | `linkshelf/cmd/server/main.go` | startup wiring and :8080 listener | store implementation |
