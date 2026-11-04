@@ -3,13 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Test review lesson: backend-api coverage is incomplete: planned linkshelf/internal/api/handlers_test.go is missing, and linkshelf/interna...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:54:48Z"
-    },
-    {
-      "stack": "go",
       "rule": "Test review lesson: backend-api coverage is missing: TEST_PLAN.md requires linkshelf/internal/api/handlers_test.go, but the file does not...",
       "source": "qa_rework",
       "hits": 1,
@@ -59,6 +52,14 @@
       "bead_path": "linkshelf/cmd/server/main.go",
       "hits": 1,
       "updated_at": "2026-11-04T15:30:29Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in main.go: internal/api/handlers_test.go:55:15: undefined: Link",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/cmd/server/main.go",
+      "hits": 2,
+      "updated_at": "2026-11-04T15:40:04Z"
     }
   ]
 }
