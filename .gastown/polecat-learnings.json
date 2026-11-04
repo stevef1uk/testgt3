@@ -2,20 +2,6 @@
   "version": 1,
   "entries": [
     {
-      "stack": "go",
-      "rule": "QA lesson: QA exhausted turns without a clean outcome",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T10:09:54Z"
-    },
-    {
-      "stack": "go",
-      "rule": "QA lesson: Stage 1 spec-compliance failure (API contract mismatch): linkshelf/web/app.js fetches GET/POST /api/items and DELETE /api/item...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T10:11:10Z"
-    },
-    {
       "stack": "typescript",
       "rule": "Test review lesson: Active e2e-testing verification failed: all 3 Playwright tests failed",
       "source": "qa_rework",
@@ -61,6 +47,21 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T17:18:34Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in main.go: cmd/server/main.go:49:10: undefined: os",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/cmd/server/main.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T17:20:32Z"
+    },
+    {
+      "stack": "go",
+      "rule": "QA lesson: backend-api beads fail spec compliance: handlers.go implements in-memory map CRUD with mutex instead of calling store.List/Cre...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T17:20:42Z"
     }
   ]
 }
