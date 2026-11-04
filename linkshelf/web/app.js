@@ -12,7 +12,7 @@
   const urlInput = inputs[1];
 
   async function loadLinks() {
-    const response = await fetch('/api/items');
+    const response = await fetch('/api/links');
     if (!response.ok) {
       throw new Error('Unable to load links');
     }
@@ -36,7 +36,7 @@
       removeButton.type = 'button';
       removeButton.textContent = 'Delete';
       removeButton.addEventListener('click', async () => {
-        const response = await fetch(`/api/items/${encodeURIComponent(link.id)}`, {
+        const response = await fetch(`/api/links/${encodeURIComponent(link.id)}`, {
           method: 'DELETE'
         });
         if (!response.ok) {
@@ -61,7 +61,7 @@
       return;
     }
 
-    const response = await fetch('/api/items', {
+    const response = await fetch('/api/links', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title, url })
