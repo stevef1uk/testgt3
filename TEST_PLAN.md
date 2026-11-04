@@ -6,7 +6,7 @@
 Requirement: Deliver the Go module and Link schema with idempotent SQLite initialization.
 Level: unit
 Test file: linkshelf/internal/store/schema_test.go
-Bead ID: 
+Bead ID: te3-all
 Phase: backend-setup
 Scenarios:
 - Open an in-memory SQLite database and call InitSchema twice.
