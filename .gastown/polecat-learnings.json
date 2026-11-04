@@ -11,13 +11,6 @@
     },
     {
       "stack": "go",
-      "rule": "QA lesson: backend-api beads te3-anl and te3-0go FAIL Stage 1 spec compliance",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T17:18:34Z"
-    },
-    {
-      "stack": "go",
       "rule": "Avoid in main.go: cmd/server/main.go:49:10: undefined: os",
       "source": "verify_fix",
       "bead_path": "linkshelf/cmd/server/main.go",
@@ -58,6 +51,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T18:27:34Z"
+    },
+    {
+      "stack": "go",
+      "rule": "QA lesson: Verify command passed (go test ok for cmd/server, internal/api, internal/store; playwright 3/3 passed), but Stage 1 spec compl...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T19:39:35Z"
     }
   ]
 }
