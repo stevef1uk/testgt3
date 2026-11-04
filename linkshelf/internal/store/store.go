@@ -4,55 +4,23 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
-// Store provides persistence for links.
-type Store struct {
-	DB *sql.DB
-}
+// DB is the database used by the package-level store API.
+var DB *sql.DB
 
-// New returns a store backed by db.
-func New(db *sql.DB) *Store {
-	return &Store{DB: db}
-}
-
-// CreateLink persists a link and returns the stored record.
-func (s *Store) CreateLink(ctx context.Context, url, title string) (Link, error) {
-	if s == nil || s.DB == nil {
-		return Link{}, fmt.Errorf("create link: database is nil")
-	}
-	url = strings.TrimSpace(url)
-	title = strings.TrimSpace(title)
-	if url == "" {
-		return Link{}, fmt.Errorf("create link: url is required")
-	}
-	if title == "" {
-		return Link{}, fmt.Errorf("create link: title is required")
-	}
-
-	now := time.Now().UTC()
-	result, err := s.DB.ExecContext(ctx,
-		`INSERT INTO links (url, title, created_at) VALUES (?, ?, ?)`,
-		url, title, now)
-	if err != nil {
-		return Link{}, fmt.Errorf("create link: %w", err)
-	}
-	id, err := result.LastInsertId()
-	if err != nil {
-		return Link{}, fmt.Errorf("create link id: %w", err)
-	}
-	return Link{ID: id, URL: url, Title: title, CreatedAt: now}, nil
-}
-
-// ListLinks returns all links ordered from newest to oldest.
-func (s *Store) ListLinks(ctx context.Context) ([]Link, error) {
-	if s == nil || s.DB == nil {
+// List returns all links ordered newest first.
+func List(ctx context.Context) ([]Link, error) {
+	if DB == nil {
 		return []Link{}, fmt.Errorf("list links: database is nil")
 	}
-	rows, err := s.DB.QueryContext(ctx,
-		`SELECT id, url, title, created_at FROM links ORDER BY id DESC`)
+
+	rows, err := DB.QueryContext(ctx,
+		`SELECT id, title, url, description, created_at FROM links ORDER BY id DESC`)
 	if err != nil {
 		return []Link{}, fmt.Errorf("list links: %w", err)
 	}
@@ -61,8 +29,13 @@ func (s *Store) ListLinks(ctx context.Context) ([]Link, error) {
 	links := []Link{}
 	for rows.Next() {
 		var link Link
-		if err := rows.Scan(&link.ID, &link.URL, &link.Title, &link.CreatedAt); err != nil {
+		var created string
+		if err := rows.Scan(&link.ID, &link.Title, &link.URL, &link.Description, &created); err != nil {
 			return []Link{}, fmt.Errorf("list links row: %w", err)
+		}
+		link.CreatedAt, err = time.Parse(time.RFC3339, created)
+		if err != nil {
+			return []Link{}, fmt.Errorf("list links timestamp: %w", err)
 		}
 		links = append(links, link)
 	}
@@ -72,15 +45,51 @@ func (s *Store) ListLinks(ctx context.Context) ([]Link, error) {
 	return links, nil
 }
 
-// DeleteLink removes a link by id.
-func (s *Store) DeleteLink(ctx context.Context, id int64) error {
-	if s == nil || s.DB == nil {
+// Create validates and persists a link.
+func Create(ctx context.Context, title, rawURL string) (Link, error) {
+	if DB == nil {
+		return Link{}, fmt.Errorf("create link: database is nil")
+	}
+	title = strings.TrimSpace(title)
+	rawURL = strings.TrimSpace(rawURL)
+	if title == "" {
+		return Link{}, fmt.Errorf("create link: title is required")
+	}
+	if utf8.RuneCountInString(title) > 200 {
+		return Link{}, fmt.Errorf("create link: title exceeds 200 characters")
+	}
+	if rawURL == "" {
+		return Link{}, fmt.Errorf("create link: url is required")
+	}
+	parsed, err := url.Parse(rawURL)
+	if err != nil || parsed.Host == "" || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		return Link{}, fmt.Errorf("create link: url must use http or https")
+	}
+
+	now := time.Now().UTC().Truncate(time.Second)
+	created := now.Format(time.RFC3339)
+	result, err := DB.ExecContext(ctx,
+		`INSERT INTO links (title, url, created_at) VALUES (?, ?, ?)`,
+		title, rawURL, created)
+	if err != nil {
+		return Link{}, fmt.Errorf("create link: %w", err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return Link{}, fmt.Errorf("create link id: %w", err)
+	}
+	return Link{ID: id, Title: title, URL: rawURL, CreatedAt: now}, nil
+}
+
+// Delete removes a link by ID.
+func Delete(ctx context.Context, id int64) error {
+	if DB == nil {
 		return fmt.Errorf("delete link: database is nil")
 	}
 	if id <= 0 {
 		return fmt.Errorf("delete link: invalid id %d", id)
 	}
-	result, err := s.DB.ExecContext(ctx, `DELETE FROM links WHERE id = ?`, id)
+	result, err := DB.ExecContext(ctx, `DELETE FROM links WHERE id = ?`, id)
 	if err != nil {
 		return fmt.Errorf("delete link: %w", err)
 	}

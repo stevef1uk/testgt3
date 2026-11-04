@@ -38,6 +38,22 @@
       "bead_path": "linkshelf/internal/store/schema.go",
       "hits": 1,
       "updated_at": "2026-11-04T08:51:01Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in store.go: internal/store/store_test.go:23:2: undefined: DB",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/internal/store/store.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T08:57:01Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Store timestamps are TEXT in SQLite; scan into string and parse RFC3339 rather than scanning directly into time.Time.",
+      "source": "agent",
+      "bead_path": "linkshelf/internal/store/store.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T08:57:02Z"
     }
   ]
 }

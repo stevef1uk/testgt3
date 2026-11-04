@@ -3,47 +3,90 @@ package store
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"testing"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
 
-func TestStoreCreatesListsAndDeletesLinks(t *testing.T) {
+func testStore(t *testing.T) *sql.DB {
+	t.Helper()
 	db, err := sql.Open("sqlite", ":memory:")
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = db.Close() })
-
 	if err := InitSchema(db); err != nil {
 		t.Fatal(err)
 	}
-	s := New(db)
+	DB = db
+	t.Cleanup(func() { DB = nil })
+	return db
+}
 
-	created, err := s.CreateLink(context.Background(), "https://example.com", "Example")
+func TestStoreCRUD(t *testing.T) {
+	testStore(t)
+	ctx := context.Background()
+
+	empty, err := List(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if created.ID == 0 || created.URL != "https://example.com" || created.Title != "Example" {
-		t.Fatalf("unexpected created link: %#v", created)
+	if empty == nil || len(empty) != 0 {
+		t.Fatalf("expected non-nil empty list, got %#v", empty)
 	}
 
-	links, err := s.ListLinks(context.Background())
+	first, err := Create(ctx, "First", "https://first.example")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(links) != 1 || links[0].ID != created.ID {
-		t.Fatalf("unexpected links: %#v", links)
-	}
-
-	if err := s.DeleteLink(context.Background(), created.ID); err != nil {
-		t.Fatal(err)
-	}
-	links, err = s.ListLinks(context.Background())
+	time.Sleep(time.Millisecond)
+	second, err := Create(ctx, "Second", "http://second.example")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if links == nil || len(links) != 0 {
-		t.Fatalf("expected an empty, non-nil list: %#v", links)
+	if first.ID == 0 || second.ID <= first.ID {
+		t.Fatalf("unexpected IDs: first=%d second=%d", first.ID, second.ID)
+	}
+	if first.CreatedAt.Location() != time.UTC || first.CreatedAt.Format(time.RFC3339) == "" {
+		t.Fatalf("unexpected timestamp: %v", first.CreatedAt)
+	}
+
+	links, err := List(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(links) != 2 || links[0].ID != second.ID || links[1].ID != first.ID {
+		t.Fatalf("expected descending IDs, got %#v", links)
+	}
+
+	if err := Delete(ctx, first.ID); err != nil {
+		t.Fatal(err)
+	}
+	if err := Delete(ctx, first.ID); err == nil {
+		t.Fatal("expected missing delete error")
+	}
+}
+
+func TestCreateValidation(t *testing.T) {
+	testStore(t)
+	ctx := context.Background()
+	tests := []struct {
+		name  string
+		title string
+		url   string
+	}{
+		{"empty title", "", "https://example.com"},
+		{"long title", strings.Repeat("a", 201), "https://example.com"},
+		{"empty url", "Example", ""},
+		{"invalid scheme", "Example", "ftp://example.com"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if _, err := Create(ctx, tt.title, tt.url); err == nil {
+				t.Fatal("expected validation error")
+			}
+		})
 	}
 }
