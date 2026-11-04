@@ -3,13 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Test review lesson: Reopen te-6ca and te-jtw",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-03T09:12:22Z"
-    },
-    {
-      "stack": "go",
       "rule": "Test review lesson: Phase verify fails: linkshelf/tests/e2e.spec.js delete test cannot find a Delete button because the rendered link ite...",
       "source": "qa_rework",
       "hits": 1,
@@ -60,6 +53,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T09:15:59Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: backend-api coverage is missing: planned test linkshelf/internal/api/handlers_test.go does not exist, while TEST_PLAN...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T09:26:07Z"
     }
   ]
 }
