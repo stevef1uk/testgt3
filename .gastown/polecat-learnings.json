@@ -3,13 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Test review lesson: backend-api coverage is missing: planned linkshelf/internal/api/handlers_test.go does not exist, so the specified rou...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:43:06Z"
-    },
-    {
-      "stack": "go",
       "rule": "Test review lesson: Active backend-api requirement is not covered: linkshelf/internal/api/handlers_test.go is planned but missing, and li...",
       "source": "qa_rework",
       "hits": 1,
@@ -56,6 +49,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T09:59:39Z"
+    },
+    {
+      "stack": "go",
+      "rule": "QA lesson: Stage 1 spec compliance failure (frontend-ui): linkshelf/web/index.html (bead te3-pd2) references static assets as /style.css...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T10:07:57Z"
     }
   ]
 }
