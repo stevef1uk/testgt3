@@ -23,6 +23,11 @@ func NewPersistentHandler(_ ...any) http.Handler {
 	return &persistentHandler{items: []item{}, nextID: 1}
 }
 
+// NewHandler constructs the HTTP handler for the items API.
+func NewHandler(_ ...any) http.Handler {
+	return NewPersistentHandler()
+}
+
 func (h *persistentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case r.Method == http.MethodGet && r.URL.Path == "/api/items":
