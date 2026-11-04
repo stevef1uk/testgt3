@@ -3,14 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Avoid in main.go: internal/api/handlers_test.go:46:7: undefined: NewHandler",
-      "source": "verify_fix",
-      "bead_path": "linkshelf/cmd/server/main.go",
-      "hits": 1,
-      "updated_at": "2026-11-04T15:30:06Z"
-    },
-    {
-      "stack": "go",
       "rule": "Avoid in main.go: --- FAIL: TestServerHandlerIsReachable (0.00s)",
       "source": "verify_fix",
       "bead_path": "linkshelf/cmd/server/main.go",
@@ -61,6 +53,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T17:24:08Z"
+    },
+    {
+      "stack": "go",
+      "rule": "QA lesson: Stage 1 spec compliance FAILED",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T18:06:57Z"
     }
   ]
 }
