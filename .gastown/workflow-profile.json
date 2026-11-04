@@ -104,7 +104,8 @@
       }
     ],
     "explicit_delivery_contract": true,
-    "active_phase_id": "e2e-testing",
+    "active_phase_id": "backend-api",
+    "rewound_from_phase_id": "e2e-testing",
     "completed_phase_ids": [
       "backend-setup",
       "backend-store",

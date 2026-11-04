@@ -3,20 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Test review lesson: Unable to obtain shell command output, so TEST_PLAN.md, SPEC.md, architecture.md, test coverage, and the phase verifi...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:49:28Z"
-    },
-    {
-      "stack": "go",
-      "rule": "Test review lesson: Phase verify `cd linkshelf \u0026\u0026 go test ./...` passes, but active backend-api coverage fails: planned `linkshelf/intern...",
-      "source": "qa_rework",
-      "hits": 1,
-      "updated_at": "2026-11-04T09:52:11Z"
-    },
-    {
-      "stack": "go",
       "rule": "Test review lesson: backend-api coverage is incomplete: planned linkshelf/internal/api/handlers_test.go is missing, and linkshelf/interna...",
       "source": "qa_rework",
       "hits": 1,
@@ -57,6 +43,22 @@
       "bead_path": "linkshelf/package.json",
       "hits": 1,
       "updated_at": "2026-11-04T12:20:02Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in main.go: internal/api/handlers_test.go:46:7: undefined: NewHandler",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/cmd/server/main.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T15:30:06Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Avoid in main.go: --- FAIL: TestServerHandlerIsReachable (0.00s)",
+      "source": "verify_fix",
+      "bead_path": "linkshelf/cmd/server/main.go",
+      "hits": 1,
+      "updated_at": "2026-11-04T15:30:29Z"
     }
   ]
 }
