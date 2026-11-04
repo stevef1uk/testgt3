@@ -1,85 +1,81 @@
-# Test Plan — testgt3
+# Test Plan
 
 ## Requirements → tests
 
 ### backend-setup
-Requirement: Establish the backend project and runnable test configuration required by the backend phases.
+Requirement: The backend project is initialized according to the backend setup requirements.
 Level: unit
 Test file: linkshelf/internal/store/schema_test.go
 Bead ID: te3-6tp
 Phase: backend-setup
 Scenarios:
-- Build the backend from a clean checkout.
-- Run the configured test command with no application data present.
+- Build and initialize the backend from a clean checkout.
+- Verify the configured package/module and test command are usable.
 Assertions:
-- Setup succeeds without missing dependencies or packages.
-- The test command exits successfully.
+- Backend setup completes without errors.
+- The backend test suite is discoverable and passes.
 
 ### backend-store
-Requirement: Provide the specified persistent store behavior and store API.
+Requirement: The backend store implements the specified data model and store operations.
 Level: unit
 Test file: linkshelf/internal/store/store_test.go
-Bead ID:
+Bead ID: 
 Phase: backend-store
 Scenarios:
-- Create, read, update, and delete each specified domain record.
-- Exercise empty-store, missing-record, duplicate, and invalid-input cases.
+- Create, retrieve, update, and delete valid records through the store API.
+- Exercise empty, missing, duplicate, and invalid inputs.
 Assertions:
-- Valid operations persist and return the specified values.
-- Missing and invalid operations return the specified errors without corrupting data.
-- Repeated reads and writes preserve the documented invariants.
+- Successful operations persist and return the specified values.
+- Missing and invalid records return the specified errors without corrupting state.
 
 ### backend-api
-Requirement: Expose the documented HTTP routes and connect them to the store.
+Requirement: The backend API exposes every specified route with the specified methods, status codes, and response bodies.
 Level: integration
 Test file: linkshelf/internal/api/handlers_test.go
-Bead ID:
+Bead ID: 
 Phase: backend-api
 Scenarios:
-- Call every documented route with valid requests.
-- Call routes with malformed payloads, unknown identifiers, unsupported methods, and missing resources.
+- Call each documented route with valid requests and decode its response.
+- Exercise unsupported methods, malformed payloads, missing records, and invalid parameters.
 Assertions:
-- Status codes, response bodies, headers, and content types match the route table.
-- Successful requests invoke the store and return persisted results.
-- Invalid requests return documented errors and do not mutate state.
+- Routes return the documented status and response schema.
+- Errors are stable, appropriately classified, and do not panic or mutate state.
 
 ### frontend-ui
-Requirement: Implement the specified user-facing UI and its backend interactions.
+Requirement: The frontend renders the specified user interface and connects user actions to the backend API.
 Level: ui
-Test file: linkshelf/web/app_test.js
-Bead ID:
+Test file: linkshelf/tests/e2e.spec.js
+Bead ID: 
 Phase: frontend-ui
 Scenarios:
-- Load the UI and complete each documented primary user flow.
-- Verify loading, empty, success, validation-error, and server-error states.
+- Load the UI and verify the documented controls, content, and initial state.
+- Perform each documented user flow, including loading, success, empty, and error states.
 Assertions:
-- Required controls, labels, data, and navigation are visible and usable.
-- User actions issue the documented API requests and render their results.
-- Errors are surfaced without losing valid user input or showing stale success state.
+- Required elements and rendered data are visible and accessible.
+- User actions issue the expected API calls and render the resulting state.
 
 ### e2e-testing
-Requirement: Verify the complete documented flow across the running backend and UI.
-Level: ui
-Test file: linkshelf/tests/e2e.spec.js
-Bead ID:
-Phase: e2e-testing
-Scenarios:
-- Start the application and execute the principal end-to-end flow in a clean environment.
-- Repeat the flow with invalid input and an unavailable or failing backend response.
-Assertions:
-- The browser can complete the happy path against the real server.
-- UI and API data agree after each mutation.
-- Failure states are deterministic and actionable.
-
-### smoke-test
-Requirement: Confirm the delivered application starts and its documented critical path remains operational.
+Requirement: The complete application supports the specified end-to-end user flows.
 Level: integration
 Test file: linkshelf/tests/e2e.spec.js
-Bead ID:
+Bead ID: 
+Phase: e2e-testing
+Scenarios:
+- Start the backend and frontend and complete the primary documented flow.
+- Verify persistence and behavior across a fresh page load.
+Assertions:
+- The flow succeeds through the real HTTP and UI boundaries.
+- Data shown by the UI matches backend state and documented failure behavior.
+
+### smoke-test
+Requirement: The delivered application passes the documented smoke verification.
+Level: integration
+Test file: linkshelf/tests/e2e.spec.js
+Bead ID: 
 Phase: smoke-test
 Scenarios:
-- Run the delivery smoke command against a clean build.
-- Exercise the critical route and one representative UI/API path.
+- Run the documented startup and smoke commands from a clean environment.
+- Probe the primary route and confirm the application remains healthy.
 Assertions:
-- The application starts within the configured command and exits/serves as documented.
-- Critical endpoints respond with the documented status and shape.
+- Startup, build, and smoke verification complete successfully.
+- The primary documented behavior is available without regressions.
