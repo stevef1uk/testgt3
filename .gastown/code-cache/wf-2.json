@@ -3,15 +3,15 @@
     "content": "module linkshelf\n\ngo 1.26.1\n\nrequire modernc.org/sqlite v1.61.1\n\nrequire (\n\tgithub.com/dustin/go-humanize v1.1.0 // indirect\n\tgithub.com/google/uuid v1.6.0 // indirect\n\tgithub.com/mattn/go-isatty v0.0.24 // indirect\n\tgithub.com/mattn/go-sqlite3 v1.14.22\n\tgithub.com/ncruces/go-strftime v1.1.0 // indirect\n\tgithub.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect\n\tgolang.org/x/sys v0.49.0 // indirect\n\tmodernc.org/libc v1.79.0 // indirect\n\tmodernc.org/mathutil v1.7.1 // indirect\n\tmodernc.org/memory v1.12.1 // indirect\n)\n",
     "md5": "ced99a123789f4024ee411b45a76f4d6",
     "validated": true,
-    "validated_at": "2026-11-04T18:40:36Z",
-    "created_at": "2026-11-04T18:40:36Z"
+    "validated_at": "2026-11-04T18:42:38Z",
+    "created_at": "2026-11-04T18:42:38Z"
   },
   "0:linkshelf/internal/store/schema.go": {
     "content": "package store\n\nimport (\n\t\"database/sql\"\n\t\"fmt\"\n\t\"time\"\n)\n\n// Link is a bookmark persisted by the link store.\ntype Link struct {\n\tID          int64     `json:\"id\"`\n\tTitle       string    `json:\"title\"`\n\tURL         string    `json:\"url\"`\n\tDescription string    `json:\"description,omitempty\"`\n\tCreatedAt   time.Time `json:\"created_at\"`\n}\n\n// InitSchema creates the persistent schema used by the link store.\nfunc InitSchema(db *sql.DB) error {\n\tif db == nil {\n\t\treturn fmt.Errorf(\"initialize schema: database is nil\")\n\t}\n\n\tconst schema = `\nCREATE TABLE IF NOT EXISTS links (\n\tid INTEGER PRIMARY KEY AUTOINCREMENT,\n\ttitle TEXT NOT NULL,\n\turl TEXT NOT NULL,\n\tdescription TEXT NOT NULL DEFAULT '',\n\tcreated_at TEXT NOT NULL\n);\n`\n\tif _, err := db.Exec(schema); err != nil {\n\t\treturn fmt.Errorf(\"initialize schema: %w\", err)\n\t}\n\treturn nil\n}\n",
     "md5": "3b5cd315c8dc9e54277c7c2f5ed382d8",
     "validated": true,
-    "validated_at": "2026-11-04T18:40:36Z",
-    "created_at": "2026-11-04T18:40:36Z"
+    "validated_at": "2026-11-04T18:42:38Z",
+    "created_at": "2026-11-04T18:42:38Z"
   },
   "0:linkshelf/internal/store/schema_test.go": {
     "content": "package store\n\nimport (\n\t\"database/sql\"\n\t\"database/sql/driver\"\n\t\"testing\"\n\t\"time\"\n)\n\ntype schemaTestDriver struct{}\n\ntype schemaTestConn struct{}\n\nfunc (schemaTestDriver) Open(string) (driver.Conn, error) {\n\treturn schemaTestConn{}, nil\n}\n\nfunc (schemaTestConn) Prepare(string) (driver.Stmt, error) {\n\treturn schemaTestStmt{}, nil\n}\n\nfunc (schemaTestConn) Close() error { return nil }\n\nfunc (schemaTestConn) Begin() (driver.Tx, error) { return schemaTestTx{}, nil }\n\ntype schemaTestStmt struct{}\n\nfunc (schemaTestStmt) Close() error  { return nil }\nfunc (schemaTestStmt) NumInput() int { return 0 }\nfunc (schemaTestStmt) Exec([]driver.Value) (driver.Result, error) {\n\treturn driver.RowsAffected(0), nil\n}\nfunc (schemaTestStmt) Query([]driver.Value) (driver.Rows, error) {\n\treturn nil, nil\n}\n\ntype schemaTestTx struct{}\n\nfunc (schemaTestTx) Commit() error   { return nil }\nfunc (schemaTestTx) Rollback() error { return nil }\n\nfunc TestLinkModel(t *testing.T) {\n\tlink := Link{\n\t\tID:        7,\n\t\tTitle:     \"Example\",\n\t\tURL:       \"https://example.com\",\n\t\tCreatedAt: time.Date(2024, time.January, 2, 3, 4, 5, 0, time.UTC),\n\t}\n\tif link.ID != 7 || link.Title != \"Example\" || link.URL != \"https://example.com\" {\n\t\tt.Fatalf(\"unexpected link: %+v\", link)\n\t}\n}\n\nfunc TestInitSchemaRejectsNilDatabase(t *testing.T) {\n\tif err := InitSchema(nil); err == nil {\n\t\tt.Fatal(\"InitSchema(nil) error = nil, want error\")\n\t}\n}\n\nfunc TestInitSchemaExecutesDDL(t *testing.T) {\n\tsql.Register(\"schema-test\", schemaTestDriver{})\n\tdb, err := sql.Open(\"schema-test\", \"\")\n\tif err != nil {\n\t\tt.Fatal(err)\n\t}\n\tdefer db.Close()\n\n\tif err := InitSchema(db); err != nil {\n\t\tt.Fatalf(\"InitSchema() error = %v\", err)\n\t}\n}\n",
