@@ -35,6 +35,3 @@ qa/qa-review-progress.json
 testgt3/
 
 # Gas Town mayor/rig (rig-flow checkpoints)
-tests/
-package.json
-package-lock.json
