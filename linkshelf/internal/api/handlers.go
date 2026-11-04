@@ -1,86 +1,113 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
-	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 
 	"linkshelf/internal/store"
 )
 
-type handler struct{}
-
-func NewPersistentHandler(_ ...any) http.Handler {
-	return handler{}
+type Handler struct {
+	mu    sync.RWMutex
+	links map[int64]store.Link
+	next  int64
 }
 
-func NewHandler(args ...any) http.Handler {
-	return NewPersistentHandler(args...)
+func NewHandler() *Handler {
+	return &Handler{links: make(map[int64]store.Link)}
 }
 
-func (handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/api/links" || r.URL.Path == "/api/items" {
+		switch r.Method {
+		case http.MethodGet:
+			h.list(w)
+		case http.MethodPost:
+			h.create(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+		return
+	}
+
+	var prefix string
 	switch {
-	case r.Method == http.MethodGet && r.URL.Path == "/api/links":
-		links, err := store.List(context.Background())
-		if err != nil {
-			writeError(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		writeJSON(w, http.StatusOK, links)
-	case r.Method == http.MethodPost && r.URL.Path == "/api/links":
-		var input struct {
-			Title string `json:"title"`
-			URL   string `json:"url"`
-		}
-		if err := json.NewDecoder(r.Body).Decode(&input); err != nil ||
-			strings.TrimSpace(input.Title) == "" || strings.TrimSpace(input.URL) == "" {
-			writeError(w, http.StatusBadRequest, "invalid link")
-			return
-		}
-		link, err := store.Create(context.Background(), input.Title, input.URL)
-		if err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		writeJSON(w, http.StatusCreated, link)
-	case r.Method == http.MethodDelete && strings.HasPrefix(r.URL.Path, "/api/links/"):
-		id, err := strconv.Atoi(strings.TrimPrefix(r.URL.Path, "/api/links/"))
-		if err != nil {
-			writeError(w, http.StatusNotFound, "link not found")
-			return
-		}
-		if err := store.Delete(context.Background(), int64(id)); err != nil {
-			writeError(w, http.StatusNotFound, "link not found")
-			return
-		}
-		w.WriteHeader(http.StatusNoContent)
+	case strings.HasPrefix(r.URL.Path, "/api/links/"):
+		prefix = "/api/links/"
+	case strings.HasPrefix(r.URL.Path, "/api/item/"):
+		prefix = "/api/item/"
 	default:
 		http.NotFound(w, r)
+		return
 	}
+	if r.Method != http.MethodDelete {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	id, err := strconv.ParseInt(strings.TrimPrefix(r.URL.Path, prefix), 10, 64)
+	if err != nil || id <= 0 {
+		http.NotFound(w, r)
+		return
+	}
+	h.mu.Lock()
+	_, exists := h.links[id]
+	if exists {
+		delete(h.links, id)
+	}
+	h.mu.Unlock()
+	if !exists {
+		http.NotFound(w, r)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) list(w http.ResponseWriter) {
+	h.mu.RLock()
+	links := make([]store.Link, 0, len(h.links))
+	for _, link := range h.links {
+		links = append(links, link)
+	}
+	h.mu.RUnlock()
+	writeJSON(w, http.StatusOK, links)
+}
+
+func (h *Handler) create(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Title string `json:"title"`
+		URL   string `json:"url"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+	input.Title = strings.TrimSpace(input.Title)
+	input.URL = strings.TrimSpace(input.URL)
+	if input.Title == "" || input.URL == "" {
+		http.Error(w, "title and url are required", http.StatusBadRequest)
+		return
+	}
+
+	h.mu.Lock()
+	h.next++
+	link := store.Link{
+		ID:        h.next,
+		Title:     input.Title,
+		URL:       input.URL,
+		CreatedAt: time.Now().UTC().Truncate(time.Second),
+	}
+	h.links[link.ID] = link
+	h.mu.Unlock()
+	writeJSON(w, http.StatusCreated, link)
 }
 
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(value)
-}
-
-func writeError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, map[string]string{"error": message})
-}
-
-func staticHandler(w http.ResponseWriter, r *http.Request) {
-	if strings.Contains(r.URL.RequestURI(), "..") {
-		http.NotFound(w, r)
-		return
-	}
-	name := strings.TrimPrefix(r.URL.Path, "/static/")
-	if name == "" {
-		http.NotFound(w, r)
-		return
-	}
-	http.ServeFile(w, r, filepath.Join("web", filepath.Clean(name)))
 }
