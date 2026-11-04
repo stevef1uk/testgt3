@@ -3,14 +3,6 @@
   "entries": [
     {
       "stack": "go",
-      "rule": "Avoid in schema.go: internal/store/schema_test.go:46:14: cannot use \"2024-01-02T03:04:05Z\" (untyped string constant) as time.Time value i...",
-      "source": "verify_fix",
-      "bead_path": "linkshelf/internal/store/schema.go",
-      "hits": 1,
-      "updated_at": "2026-11-04T08:51:01Z"
-    },
-    {
-      "stack": "go",
       "rule": "Avoid in store.go: internal/store/store_test.go:23:2: undefined: DB",
       "source": "verify_fix",
       "bead_path": "linkshelf/internal/store/store.go",
@@ -60,6 +52,13 @@
       "source": "qa_rework",
       "hits": 1,
       "updated_at": "2026-11-04T09:27:47Z"
+    },
+    {
+      "stack": "go",
+      "rule": "Test review lesson: backend-api coverage is missing: linkshelf/internal/api/handlers_test.go does not exist and the API package has no ha...",
+      "source": "qa_rework",
+      "hits": 1,
+      "updated_at": "2026-11-04T09:30:21Z"
     }
   ]
 }
