@@ -1,13 +1,13 @@
-# Test Review — frontend-ui
+# Test Review — e2e-testing
 
 ## Summary
-All active-phase requirements have planned, substantive tests; phase verify passed.
+The planned E2E test file exists and contains substantive Playwright assertions, but the required default phase verification is not green.
 
 ## Per-requirement results
-### frontend-ui requirements — PASS
+### e2e-testing — FAIL
 - Test file: linkshelf/tests/e2e.spec.js
-- Verify result: passed (`index.html`, `app.js`, and `style.css` are non-empty; `node --check linkshelf/web/app.js` passed)
-- Notes: Playwright tests exercise page visibility and JavaScript asset serving, link creation/display with title and href assertions, and deletion from the rendered list. These are real browser interactions and assertions rather than stubs.
+- Verify result: failed (`npx playwright test` reported `Error: No tests found`)
+- Notes: The default Playwright discovery selects `playwright.config.ts`, whose `testDir` is `./e2e`; the planned tests are in `linkshelf/tests/e2e.spec.js`. Running explicitly with `--config=playwright.config.js` finds and runs the tests, but the required unqualified command remains broken.
 
 ## Overall assessment
-The active frontend UI requirements are covered by substantive end-to-end tests, and the required phase verification is green.
+Return to implementation. Reopen the e2e-testing bead(s) and reconcile/remove the conflicting Playwright configuration so the required `cd linkshelf && npx playwright test` command discovers `linkshelf/tests/e2e.spec.js` and passes.
