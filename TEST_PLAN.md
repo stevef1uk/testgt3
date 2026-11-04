@@ -1,81 +1,81 @@
-# Test Plan
+# Test Plan — Linkshelf
 
 ## Requirements → tests
 
 ### backend-setup
-Requirement: The backend project is initialized according to the backend setup requirements.
-Level: unit
+Requirement: Provide the Go server entry point, SQLite dependency, configurable listen address, and static-file serving setup.
+Level: integration
 Test file: linkshelf/internal/store/schema_test.go
-Bead ID: te3-6tp
+Bead ID: 
 Phase: backend-setup
 Scenarios:
-- Build and initialize the backend from a clean checkout.
-- Verify the configured package/module and test command are usable.
+- Start the server with the default address and with ADDR set to a test address.
+- Request `/` and an existing `/static/` asset, and request an unknown path and a path containing `..`.
 Assertions:
-- Backend setup completes without errors.
-- The backend test suite is discoverable and passes.
+- The server is constructible and serves the index and safe static assets with GET.
+- Unknown, traversal, and unsupported-method requests return 404; the configured address is honored.
 
 ### backend-store
-Requirement: The backend store implements the specified data model and store operations.
+Requirement: Persist links in SQLite and provide schema initialization and link CRUD behavior.
 Level: unit
 Test file: linkshelf/internal/store/store_test.go
 Bead ID: 
 Phase: backend-store
 Scenarios:
-- Create, retrieve, update, and delete valid records through the store API.
-- Exercise empty, missing, duplicate, and invalid inputs.
+- Initialize an in-memory database, create links, list them, retrieve them, and delete one.
+- Exercise empty storage, missing IDs, invalid required values, and schema initialization more than once.
 Assertions:
-- Successful operations persist and return the specified values.
-- Missing and invalid records return the specified errors without corrupting state.
+- Schema creation is idempotent and persisted rows round-trip with stable IDs and fields.
+- Delete removes only the selected row; missing records and invalid inputs return the specified errors without corrupting data.
 
 ### backend-api
-Requirement: The backend API exposes every specified route with the specified methods, status codes, and response bodies.
+Requirement: Expose the documented link API routes with JSON responses, validation, and correct HTTP status codes.
 Level: integration
 Test file: linkshelf/internal/api/handlers_test.go
 Bead ID: 
 Phase: backend-api
 Scenarios:
-- Call each documented route with valid requests and decode its response.
-- Exercise unsupported methods, malformed payloads, missing records, and invalid parameters.
+- GET the collection, POST a valid link, GET the created link, and DELETE it through an httptest server.
+- Send malformed JSON, missing or invalid fields, unknown IDs, unsupported methods, and invalid JSON requests.
 Assertions:
-- Routes return the documented status and response schema.
-- Errors are stable, appropriately classified, and do not panic or mutate state.
+- Successful responses have the documented status, JSON content type, and response shape.
+- Bad input is rejected with 4xx without a store mutation, missing links return 404, and delete is scoped to the requested ID.
 
 ### frontend-ui
-Requirement: The frontend renders the specified user interface and connects user actions to the backend API.
+Requirement: Render the link shelf in the browser and let a user add and remove links through the API.
 Level: ui
 Test file: linkshelf/tests/e2e.spec.js
 Bead ID: 
 Phase: frontend-ui
 Scenarios:
-- Load the UI and verify the documented controls, content, and initial state.
-- Perform each documented user flow, including loading, success, empty, and error states.
+- Load the page with an empty collection, submit a valid link, and reload/list the created link.
+- Use the delete control and exercise API failure and empty-state rendering.
 Assertions:
-- Required elements and rendered data are visible and accessible.
-- User actions issue the expected API calls and render the resulting state.
+- The page displays links and their title/URL, updates without a full-page navigation, and removes the selected item.
+- Empty, loading, and error states are visible and user input is escaped rather than interpreted as markup.
 
 ### e2e-testing
-Requirement: The complete application supports the specified end-to-end user flows.
+Requirement: Verify the complete running application across browser, HTTP API, persistence, and static assets.
 Level: integration
 Test file: linkshelf/tests/e2e.spec.js
 Bead ID: 
 Phase: e2e-testing
 Scenarios:
-- Start the backend and frontend and complete the primary documented flow.
-- Verify persistence and behavior across a fresh page load.
+- Start the compiled server against a temporary database, open the UI, add a link, verify it through the API, restart, and delete it.
+- Check root/static asset delivery and the documented invalid-request paths.
 Assertions:
-- The flow succeeds through the real HTTP and UI boundaries.
-- Data shown by the UI matches backend state and documented failure behavior.
+- A link created in the UI is persisted and returned by the API after restart, and deletion is reflected in both.
+- The browser receives usable assets and all documented success and error status codes match the API contract.
 
 ### smoke-test
-Requirement: The delivered application passes the documented smoke verification.
+Requirement: Provide a repeatable smoke check that proves the built server starts and the primary shelf flow works.
 Level: integration
 Test file: linkshelf/tests/e2e.spec.js
 Bead ID: 
 Phase: smoke-test
 Scenarios:
-- Run the documented startup and smoke commands from a clean environment.
-- Probe the primary route and confirm the application remains healthy.
+- Launch the built binary with a temporary database and wait for the configured port.
+- Probe `/`, the primary links endpoint, and one create/list/delete flow, then terminate the process.
 Assertions:
-- Startup, build, and smoke verification complete successfully.
-- The primary documented behavior is available without regressions.
+- The process becomes ready, serves the expected content, and exits cleanly after the smoke run.
+- The primary happy path succeeds end to end and failures produce actionable test output.
